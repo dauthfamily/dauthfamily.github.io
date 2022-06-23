@@ -1,0 +1,131 @@
+/*
+Theme Name: Uncode Child
+Description: Child theme for Uncode theme
+Author: Undsgn™
+Author URI: http://www.undsgn.com
+Template: uncode
+Version: 1.0.0
+Text Domain: uncode
+*/
+
+.parent-navigation {
+
+  margin: auto;
+  width: 100%;
+
+  background-color: #f7f7f7;
+	border: 1px solid;
+	border-color: #eaeaea;
+	
+}
+.child-navigation {
+  margin: auto;
+  max-width: 1220px;
+  padding: 27px 10px 60px 10px;	
+}
+.child-navigation-left-arrow {
+	float: left;
+  text-align: left;	
+	
+	
+}
+.child-navigation-left {
+	float: left;
+  text-align: left;	
+	transition: 0.4s;
+	margin-left: -55px;
+}
+
+.child-navigation-left-no {
+	float: left;
+  text-align: left;	
+	transition: 0.4s;
+	margin-left: -55px;
+}
+.child-navigation-left:hover {
+  margin-left: -60px;
+}
+
+.child-navigation-right-arrow {
+	float: right;
+  text-align: right;
+	}
+	
+.child-navigation-right {
+	float: right;
+  text-align: right;
+	transition: 0.4s;
+	margin-right: -55px;
+}
+.child-navigation-right:hover {
+  margin-right: -60px;
+}
+
+.child-navigation-right-no {
+	float: right;
+  text-align: right;
+	transition: 0.4s;
+	margin-right: -55px;
+}
+
+
+
+.custombtn,
+.custombtn-link {
+  display: inline-block;
+text-transform: capitalize;
+	font-weight: 500;
+	color: #000000;
+	letter-spacing: 0.1em;
+  font-size: 11.5px;
+  padding: 13px 31px 13px 31px !important;
+  font-style: normal !important;
+  text-align: center;
+  vertical-align: middle;
+  margin-top: 1px;
+  margin-bottom: 1px;
+  cursor: pointer;
+  background-image: none;
+  border-style: solid;
+  border-radius: 2px;
+  outline: none;
+  white-space: pre-wrap;
+  -webkit-text-stroke: 0px;
+  transition: color 200ms ease-in-out, background-color 200ms ease-in-out, border-color 200ms ease-in-out;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+
+.custombtn-link:hover {
+	color: #006cff;
+	}
+
+
+.custombtnno {
+  display: inline-block;
+text-transform: capitalize;
+	font-weight: 500;
+	color: rgba(119,119,119,0.65);
+	letter-spacing: 0.1em;
+  font-size: 11.5px;
+  padding: 13px 31px 13px 31px !important;
+  font-style: normal !important;
+  text-align: center;
+  vertical-align: middle;
+  margin-top: 1px;
+  margin-bottom: 1px;
+  cursor: arrow;
+  background-image: none;
+  border-style: solid;
+  border-radius: 2px;
+  outline: none;
+  white-space: pre-wrap;
+  -webkit-text-stroke: 0px;
+  transition: color 200ms ease-in-out, background-color 200ms ease-in-out, border-color 200ms ease-in-out;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+
+

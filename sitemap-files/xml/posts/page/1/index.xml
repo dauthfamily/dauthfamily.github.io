@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?xml-stylesheet type="text/xsl" href="https://dauthfamily.github.io/wp-content/plugins/www-xml-sitemap-generator-org//assets/SitemapXML.xsl"?>
+<!-- Created using XmlSitemapGenerator.org WordPress Plugin - Free HTML, RSS and XML sitemap generator -->
+<urlset  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"  xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd" >
+<url><loc>https://dauthfamily.github.io</loc><lastmod>2022-06-22T09:24:00+00:00</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>
+<url><loc>https://dauthfamily.github.io/advertisements/</loc><lastmod>2022-06-21T06:44:32+00:00</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+<url><loc>https://dauthfamily.github.io/articles/</loc><lastmod>2022-06-21T06:45:05+00:00</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+<url><loc>https://dauthfamily.github.io/documents/</loc><lastmod>2022-06-21T06:44:49+00:00</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+<url><loc>https://dauthfamily.github.io/photos/</loc><lastmod>2022-06-21T06:45:23+00:00</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+<url><loc>https://dauthfamily.github.io/posts/</loc><lastmod>2022-06-07T16:34:36+00:00</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+<url><loc>https://dauthfamily.github.io/about/</loc><lastmod>2022-06-22T07:37:47+00:00</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+<url><loc>https://dauthfamily.github.io/people/</loc><lastmod>2022-06-11T02:55:03+00:00</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+
+</urlset>
+<!-- Created using XmlSitemapGenerator.org WordPress Plugin - Free HTML, RSS and XML sitemap generator -->
