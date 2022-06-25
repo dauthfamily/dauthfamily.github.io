@@ -95,7 +95,7 @@ var _wpUtilSettings = {"ajax":{"url":"\/dauth\/wp-admin\/admin-ajax.php"}};
 <script type="text/javascript" src="https://dauthfamily.github.io/wp-includes/js/wp-util.min.js?ver=6.0" id="wp-util-js"></script>
 <script type="text/javascript" id="user-profile-js-extra">
 /* <![CDATA[ */
-var userProfileL10n = {"user_id":"0","nonce":"e5e24ec4c5"};
+var userProfileL10n = {"user_id":"0","nonce":"185ecab5eb"};
 /* ]]> */
 </script>
 <script type="text/javascript" src="https://dauthfamily.github.io/wp-admin/js/user-profile.min.js?ver=6.0" id="user-profile-js"></script>

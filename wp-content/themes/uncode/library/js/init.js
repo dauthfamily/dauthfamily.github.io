@@ -240,6 +240,11 @@ function css_browser_selector(u, ns) {
 		b = b.concat(uaInfo.getLang());
 		/* js */
 		b = b.concat(['js']);
+		/* no animations  */
+		var noAnimations = /no-cssanimations/g;
+		if (noAnimations.test(html.className)) {
+			b = b.concat('no-cssanimations');
+		}
 		/* pixel ratio */
 		b = b.concat(screenInfo.getPixelRatio());
 		/* screen */
@@ -370,187 +375,6 @@ var evento = function(n) {
 		_handlers: f
 	}
 }(this);
-/*
- * OKVideo by OKFocus v2.3.2
- * http://okfoc.us
- *
- * Copyright 2014, OKFocus
- * Licensed under the MIT license.
- *
- */
-var player, OKEvents, options, videoWidth, videoHeight, YTplayers, youtubePlayers = new Array();
-// youtube player ready
-function onYouTubeIframeAPIReady() {
-	YTplayers = new Array();
-	jQuery('.no-touch .uncode-video-container.video').each(function() {
-		var playerY;
-		if (jQuery(this).attr('data-provider') == 'youtube') {
-			var id = jQuery(this).attr('data-id');
-			options = jQuery(window).data('okoptions-' + id);
-			options.time = jQuery(this).attr('data-t');
-			playerY = new YT.Player('okplayer-' + id, {
-				videoId: options.video ? options.video.id : null,
-				playerVars: {
-					'autohide': 1,
-					'autoplay': 0, //options.autoplay,
-					'disablekb': options.keyControls,
-					'cc_load_policy': options.captions,
-					'controls': options.controls,
-					'enablejsapi': 1,
-					'fs': 0,
-					'modestbranding': 1,
-					'origin': window.location.origin || (window.location.protocol + '//' + window.location.hostname),
-					'iv_load_policy': options.annotations,
-					'loop': options.loop,
-					'showinfo': 0,
-					'rel': 0,
-					'wmode': 'opaque',
-					'hd': options.hd,
-					'mute': 1
-				},
-				events: {
-					'onReady': OKEvents.yt.ready,
-					'onStateChange': OKEvents.yt.onStateChange,
-					'onError': OKEvents.yt.error
-				}
-			});
-			YTplayers[id] = playerY;
-			playerY.videoId = id;
-		}
-	});
-}
-// vimeo player ready
-function vimeoPlayerReady(id) {
-	options = jQuery(window).data('okoptions-' + id);
-	var jIframe = options.jobject,
-	iframe = jIframe[0];
-	jIframe.attr('src', jIframe.data('src'));
-	var playerV = $f(iframe);
-	// hide player until Vimeo hides controls...
-	playerV.addEvent('ready', function(e) {
-		OKEvents.v.onReady(iframe);
-		var carouselContainer = jQuery(iframe).closest('.owl-carousel');
-		if (carouselContainer.length) {
-			UNCODE.owlPlayVideo(carouselContainer);
-		}
-		// "Do not try to add listeners or call functions before receiving this event."
-		if (OKEvents.utils.isMobile()) {
-			// mobile devices cannot listen for play event
-			OKEvents.v.onPlay(playerV);
-		} else {
-			playerV.addEvent('play', OKEvents.v.onPlay(playerV));
-			playerV.addEvent('pause', OKEvents.v.onPause);
-			playerV.addEvent('finish', OKEvents.v.onFinish);
-		}
-		if (options.time != null) {
-			playerV.api('seekTo', (options.time).replace('t=', ''));
-		}
-
-		playerV.api('play');
-		jQuery(iframe).css({
-			visibility: 'visible',
-			opacity: 1
-		});
-		jQuery(iframe).closest('.uncode-video-container').css('opacity', '1');
-		jQuery(iframe).closest('#page-header').addClass('video-started');
-		jQuery(iframe).closest('.background-wrapper').find('.block-bg-blend-mode.not-ie').css('opacity', '1');
-
-	});
-}
-OKEvents = {
-	yt: {
-		ready: function(event) {
-			var id = event.target.videoId;
-			youtubePlayers[id] = event.target;
-			event.target.setVolume(options.volume);
-			if (options.autoplay === 1) {
-				if (options.playlist.list) {
-					player.loadPlaylist(options.playlist.list, options.playlist.index, options.playlist.startSeconds, options.playlist.suggestedQuality);
-				} else {
-					var inCarousel = jQuery('#okplayer-' + id).closest('.owl-item');
-					if (!inCarousel.length || (inCarousel.length && inCarousel.hasClass('active'))) {
-						if (options.time != null) {
-							event.target.seekTo(parseInt(options.time));
-						}
-						event.target.playVideo();
-					} else {
-						event.target.pauseVideo();
-					}
-				}
-			}
-			OKEvents.utils.isFunction(options.onReady) && options.onReady(event.target);
-		},
-		onStateChange: function(event) {
-			var id = event.target.videoId;
-			switch (event.data) {
-				case -1:
-					OKEvents.utils.isFunction(options.unstarted) && options.unstarted();
-					break;
-				case 0:
-					OKEvents.utils.isFunction(options.onFinished) && options.onFinished();
-					options.loop && event.target.playVideo();
-					break;
-				case 1:
-					OKEvents.utils.isFunction(options.onPlay) && options.onPlay();
-					setTimeout(function() {
-						UNCODE.initVideoComponent(document.body, '.uncode-video-container.video, .uncode-video-container.self-video');
-						jQuery('#okplayer-' + id).closest('.uncode-video-container').css('opacity', '1');
-						jQuery('#okplayer-' + id).closest('#page-header').addClass('video-started');
-						jQuery('#okplayer-' + id).closest('.background-wrapper').find('.block-bg-blend-mode.not-ie').css('opacity', '1');
-					}, 300);
-					break;
-				case 2:
-					OKEvents.utils.isFunction(options.onPause) && options.onPause();
-					break;
-				case 3:
-					OKEvents.utils.isFunction(options.buffering) && options.buffering();
-					break;
-				case 5:
-					OKEvents.utils.isFunction(options.cued) && options.cued();
-					break;
-				default:
-					throw "OKVideo: received invalid data from YT player.";
-			}
-		},
-		error: function(event) {
-			throw event;
-		}
-	},
-	v: {
-		onReady: function(target) {
-			OKEvents.utils.isFunction(options.onReady) && options.onReady(target);
-		},
-		onPlay: function(player) {
-			if (!OKEvents.utils.isMobile()) player.api('setVolume', options.volume);
-			OKEvents.utils.isFunction(options.onPlay) && options.onPlay();
-			jQuery(player.element).closest('.uncode-video-container').css('opacity', '1');
-			jQuery(player.element).closest('#page-header').addClass('video-started');
-			jQuery(player.element).closest('.background-wrapper').find('.block-bg-blend-mode.not-ie').css('opacity', '1');
-		},
-		onPause: function() {
-			OKEvents.utils.isFunction(options.onPause) && options.onPause();
-		},
-		onFinish: function() {
-			OKEvents.utils.isFunction(options.onFinish) && options.onFinish();
-		}
-	},
-	utils: {
-		isFunction: function(func) {
-			if (typeof func === 'function') {
-				return true;
-			} else {
-				return false;
-			}
-		},
-		isMobile: function() {
-			if (navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry)/)) {
-				return true;
-			} else {
-				return false;
-			}
-		}
-	}
-};
 // DOM class helper
 (function(window) {
 	'use strict';
@@ -737,8 +561,9 @@ function whichAnimationEvent() {
 		logolink,
 		logoMinScale,
 		lastScrollValue = 0,
-		wwidth = window.innerWidth || document.documentElement.clientWidth,
-		wheight = window.innerHeight || document.documentElement.clientHeight,
+		wwidth = uaInfo.getIpadApp() == 'ipad_app' ? document.documentElement.clientWidth : window.innerWidth || document.documentElement.clientWidth,
+		wheight = uaInfo.getIpadApp() == 'ipad_app' ? document.documentElement.clientHeight : window.innerHeight || document.documentElement.clientHeight,
+		printDialogOpen = false,
 		isScrolling = false,
 		boxWrapper,
 		docheight = 0,
@@ -788,7 +613,7 @@ function whichAnimationEvent() {
 				if ( !UNCODE.isFullPage ) {
 					document.documentElement.style.paddingTop = bodyBorder + 'px';
 				}
-				wheight = (window.innerHeight || document.documentElement.clientHeight) - (bodyBorder * 2);
+				wheight = (uaInfo.getIpadApp() == 'ipad_app' ? document.documentElement.clientWidth : window.innerHeight || document.documentElement.clientHeight) - (bodyBorder * 2);
 			}
 			if (!isMobile && !scrollbarWidth) {
 				// Create the measurement node
@@ -868,6 +693,20 @@ function whichAnimationEvent() {
 				isSplitMenu = true;
 			}
 			fixMenu();
+			menuOpacity();
+		},
+		menuOpacity = function(){
+			transmenuel = document.querySelectorAll('.menu-transparent:not(.vmenu-container)');
+			if (typeof transmenuel === 'undefined' || !transmenuel.length) {
+				return false;
+			}
+			if (wwidth > mediaQuery && classie.hasClass(transmenuel[0], 'menu-desktop-transparent')) {
+				classie.removeClass(transmenuel[0], 'menu-desktop-transparent');
+				classie.addClass(transmenuel[0], 'menu-desktop-transparent');
+			} else if (wwidth <= mediaQuery && classie.hasClass(transmenuel[0], 'menu-desktop-transparent')) {
+				classie.removeClass(transmenuel[0], 'menu-desktop-transparent');
+				classie.addClass(transmenuel[0], 'menu-desktop-transparent');
+			}
 		},
 		verticalRightMenu = function() {
 			var setVrightMenu, vRightMenuw;
@@ -876,7 +715,7 @@ function whichAnimationEvent() {
 				$mainHeader = document.querySelector('.main-header');
 				mainHeader = $mainHeader.innerHTML;
 				$mainWrapper = document.querySelector('.main-wrapper');
-				if ( classie.hasClass(document.body, 'vmenu') && classie.hasClass(document.body, 'vmenu-position-right') ) {
+				if ( classie.hasClass(document.body, 'vmenu') && ( ( classie.hasClass(document.body, 'vmenu-position-right') && ! classie.hasClass(document.body, 'rtl') ) || ( classie.hasClass(document.body, 'vmenu-position-left') && classie.hasClass(document.body, 'rtl') ) ) ) {
 					if ( wwidth <= mediaQuery ) {
 						$initBox.parentNode.insertBefore($mainHeader, $initBox.nextSibling);
 					} else {
@@ -1002,15 +841,18 @@ function whichAnimationEvent() {
 			}
 		},
 		initHeader = function() {
+			pageHeader = document.getElementById("page-header");
+			if (SiteParameters.dynamic_srcset_active === '1') {
+				UNCODE.adaptive_srcset_replace_bg(pageHeader);
+			}
 			UNCODE.adaptive();
 			headerHeight('.header-wrapper');
 
 			parallaxHeaders = document.querySelectorAll('.header-parallax > .header-bg-wrapper');
 			header = document.querySelectorAll('.header-wrapper.header-uncode-block, .header-wrapper.header-revslider, .header-wrapper.header-layerslider, .header-basic .header-wrapper, .header-uncode-block > .row-container:first-child > .row > .row-inner > .col-lg-12 > .uncol, .header-uncode-block .uncode-slider .owl-carousel > .row-container:first-child .column_child .uncoltable');
 			headerWithOpacity = document.querySelectorAll('.header-scroll-opacity');
-			pageHeader = document.getElementById("page-header");
 			if ( typeof pageHeader === 'object' && pageHeader !== null  ) {
-				headerVideo = pageHeader.querySelectorAll('.uncode-video-container');
+				headerVideo = pageHeader.querySelectorAll('.uncode-video-container:not(.t-entry-drop)');
 				kenburnsHeaders = pageHeader.querySelectorAll('.with-kburns > .header-bg-wrapper');
 				backwashHeaders = pageHeader.querySelectorAll('.with-zoomout > .header-bg-wrapper');
 				if ( headerVideo.length ) {
@@ -1135,6 +977,9 @@ function whichAnimationEvent() {
 
 		},
 		initRow = function(currentRow) {
+			if (SiteParameters.dynamic_srcset_active === '1') {
+				UNCODE.adaptive_srcset_replace_bg(currentRow);
+			}
 			UNCODE.adaptive();
 			var el = typeof currentRow.parentNode !== 'undefined' && currentRow.parentNode.parentNode.getAttribute("data-parent") == 'true' ? currentRow.parentNode : ( currentRow.getAttribute("data-parent") == 'true' ? currentRow.querySelector('.row-parent') : currentRow.parentNode.parentNode ),
 				rowParent = el.parentNode,
@@ -1181,6 +1026,26 @@ function whichAnimationEvent() {
 			if (elements == 0) {
 				el.setAttribute('data-imgready', 'true');
 			}
+
+			// var $bgs = rowParent.querySelectorAll('.background-inner');
+
+			// for (var i = 0; i < $bgs.length; i++) {
+			// 	var $bg = $bgs[i];
+			// 	if ($bg.style.backgroundImage && $bg.style.backgroundImage !== '') {
+			// 		var url = ($bg.style.backgroundImage).match(uri_pattern),
+			// 			image = new Image();
+			// 		url = url[0];
+			// 		image.source = url;
+			// 		image.el = $bg;
+			// 		image.onload = function() {
+			// 			var _this = this;
+			// 			_this.el.setAttribute('data-imgloaded', 'true');
+			// 		};
+			// 		image.src = url;
+			// 	} else {
+			// 		$bg.setAttribute('data-imgloaded', 'true');
+			// 	}
+			// }
 
 			/** init parallax is not mobile */
 			if ( ! UNCODE.isFullPage ) {
@@ -1235,6 +1100,22 @@ function whichAnimationEvent() {
 				}
 			}
 			product_relative_font_style(el)
+
+			function vc_row_full_width_size(){
+				if (boxWidth != 0 && classie.hasClass(rowParent, 'vc_row-full-width')) {
+					var vmenu = document.querySelector('.vmenu .vmenu-container'),
+						vmenuW = 0;
+					if (typeof vmenu == 'object' && vmenu != null && wwidth > mediaQuery  ) {
+						vmenuW = vmenu.offsetWidth;
+					}
+					rowParent.style.maxWidth = ( boxWidth - vmenuW ) + 'px';
+				}
+			}
+			vc_row_full_width_size();
+
+			window.addEventListener("resize", function() {
+				vc_row_full_width_size();
+			});
 
 			function word_for_lines(event, $parent_el){
 
@@ -1293,7 +1174,7 @@ function whichAnimationEvent() {
 						for (var i = 0; i < $wraps.length; i++) {
 							var $wrap = $wraps[i],
 								$lines = $wrap.querySelectorAll('.heading-line-wrap'),
-								$words =  $wrap.querySelectorAll('.split-word'),
+								$words =  $wrap.querySelectorAll('.split-word:not(.uncode-rotating-span)'),
 								containerDelay = $wrap.getAttribute('data-delay'),
 								containerSpeed = $wrap.getAttribute('data-speed'),
 								containerSpeed_val = typeof containerSpeed !== 'undefined' && containerSpeed !== null ? parseFloat(containerSpeed) : 400,
@@ -1459,6 +1340,7 @@ function whichAnimationEvent() {
 								$parent_wrap.removeChild($line_wrap);
 							}
 						}
+						window.dispatchEvent(new CustomEvent('removeOldLines'));
 					}
 
 					var createHighlightSpans = function(){
@@ -1470,7 +1352,7 @@ function whichAnimationEvent() {
 								classEl = '',
 								animation = false,
 								hexRe = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i,
-								$h_words = $highlight.querySelectorAll('.split-word');
+								$h_words = $highlight.querySelectorAll('.split-word:not(.uncode-rotating-span)');
 
 							if ( typeof atts !== 'undefined' && atts != '' ) {
 								objAtts = JSON.parse(atts);
@@ -1552,7 +1434,7 @@ function whichAnimationEvent() {
 							if (lineStart) {
 								lineArray[lineIndex] = [word_k];
 
-								if (nextTop !== null && nextTop > (top + elH/2)) {
+								if (nextTop !== null && elH > 0 && nextTop > (top + elH/2)) {//tollerance
 									lineArray[lineIndex].push(word_k);
 									lineIndex++;
 									lineStart = true;
@@ -1560,7 +1442,7 @@ function whichAnimationEvent() {
 									lineStart = false;
 								}
 							} else {
-								if (nextTop !== null && nextTop > (top + elH/2)) {//tollerance
+								if (nextTop !== null && elH > 0 && nextTop > (top + elH/2)) {//tollerance
 									lineArray[lineIndex].push(word_k);
 									lineIndex++;
 									lineStart = true;
@@ -1775,7 +1657,27 @@ function whichAnimationEvent() {
 			};
 			checkEmptyAdditionalInfo();
 
+			var waitForSrcSetMedia = function(){
+				var $thumbs = el.querySelectorAll('.srcset-lazy-animations');
+
+				for ( var th_i = 0; th_i < $thumbs.length; th_i++ ) {
+					var $thumb = $thumbs[th_i],
+						$media = $thumb.querySelectorAll('.srcset-auto');
+
+					if ( $media.length ) {
+						var $media_inside = $media[0].querySelectorAll('.srcset-sizes-done');
+						if ( classie.hasClass($media[0], 'srcset-sizes-done') || $media_inside.length ) {
+							classie.removeClass($thumb, 'srcset-lazy-animations');
+						}
+					} else {
+						classie.removeClass($thumb, 'srcset-lazy-animations');
+					}
+				}
+			};
+			waitForSrcSetMedia();
+
 		},
+
 		setRowHeight = function(container, forced, resized) {
 			var currentTallest = 0,
 				percentHeight = 0,
@@ -1799,7 +1701,8 @@ function whichAnimationEvent() {
 				$row.oversized = false;
 				percentHeight = el.getAttribute("data-height-ratio");
 				minHeight = el.getAttribute("data-minheight");
-				child = (el.firstElementChild || el.firstChild);
+				// child = (el.firstElementChild || el.firstChild);
+				child = (el.lastElementChild || el.lastChild);
 				var childHeight = outerHeight(child);
 				/** window height without header **/
 				if (!!percentHeight || !!minHeight || forced || (isIE && classie.hasClass(el, 'unequal')) ) {
@@ -1928,6 +1831,7 @@ function whichAnimationEvent() {
 							child.style.height = (currentTallest == 'auto' ? 'auto' : currentTallest + 'px');
 						}
 					} else {
+						//here
 						child.style.height = (currentTallest == 'auto' ? 'auto' : currentTallest + 'px');
 					}
 
@@ -2010,8 +1914,9 @@ function whichAnimationEvent() {
 										$row.oversized = true;
 									} else {
 										$colHeight += newHeight;
-										if ( ! classie.hasClass($colInner, 'uncode-divider-wrap') )
+										if ( ! classie.hasClass($colInner, 'uncode-divider-wrap') ) {
 											$colInner.style.height = newHeight + 'px';
+										}
 									}
 								}
 							} else {
@@ -2044,7 +1949,7 @@ function whichAnimationEvent() {
 							getDivChildren($col, '.row-child', function(obj, i, total) {
 								var $colChild = obj,
 									$colInner = $colChild.children[0],
-									percentHeight = $colChild.getAttribute("data-height"),
+									percentHeight = parseFloat($colChild.getAttribute("data-height")),
 									$colParent = $colChild.parentNode,
 									$uncont = $colParent.parentNode,
 									newHeight;
@@ -2093,6 +1998,7 @@ function whichAnimationEvent() {
 												$uncont.style.height = '100%';
 												$colChild.style.display = 'table';
 											}
+											//and here
 											$colInner.style.height = newHeight + 'px';
 										}
 									}
@@ -2125,7 +2031,7 @@ function whichAnimationEvent() {
 								var getStyle = (window.getComputedStyle((obj.parentNode), null)),
 								getInnerHeight = (parseInt(obj.parentNode.clientHeight) - parseInt(getStyle.paddingTop) - parseInt(getStyle.paddingBottom)),
 								getTempHeight = parseInt(obj.style.height);
-								if (getInnerHeight > getTempHeight) {
+								if (getInnerHeight > getTempHeight && ( obj.parentNode.parentNode == null || ! classie.hasClass(obj.parentNode.parentNode, 'pin-trigger') ) ) {
 									obj.style.height = getInnerHeight + 'px';
 									//obj.style.marginBottom = '-1px';
 								}
@@ -2158,6 +2064,7 @@ function whichAnimationEvent() {
 						}
 					}
 				}
+				container[i].dispatchEvent(new CustomEvent('setResized'));
 			};
 			if ( resized || UNCODE.isFrontEndEditor ) {
 				window.scroll(0, scrollRowHeight_fix);
@@ -2185,11 +2092,16 @@ function whichAnimationEvent() {
 									var headerBlock = getClosest(headerel, 'header-uncode-block');
 									if (headerBlock != null) {
 										var parentRow = headerBlock.querySelector('.vc_row'),
+											innerRows;
+										if ( parentRow !== null ) {
 											innerRows = parentRow.querySelectorAll('.column_parent > .uncol > .uncoltable > .uncell > .uncont, .uncode-slider .column_child > .uncol > .uncoltable > .uncell > .uncont');
-										for (var k = 0; k < innerRows.length; k++) {
-											if (innerRows[k] != undefined) {
-												if (wwidth > mediaQuery) innerRows[k].style.paddingTop = transmenuHeight + 'px';
-												else innerRows[k].style.paddingTop = (transmenuHeight - mastheadMobilePaddingTop) + 'px';
+										}
+										if ( innerRows != undefined && innerRows !== null ) {
+											for (var k = 0; k < innerRows.length; k++) {
+												if (innerRows[k] != undefined) {
+													if (wwidth > mediaQuery) innerRows[k].style.paddingTop = transmenuHeight + 'px';
+													else innerRows[k].style.paddingTop = (transmenuHeight - mastheadMobilePaddingTop) + 'px';
+												}
 											}
 										}
 									} else {
@@ -2241,28 +2153,53 @@ function whichAnimationEvent() {
 			if ( UNCODE.isFrontEndEditor )
 				return;
 			var triggerButton,
+			globalBtnn,
+			sequential = false,
 			closeButtons = new Array();
 			function toggleOverlay(btn) {
-				if ( classie.hasClass(triggerButton, 'menu-button-offcanvas') ) {
+				if ( classie.hasClass(triggerButton, 'menu-button-offcanvas') || classie.hasClass(triggerButton, 'opening') || classie.hasClass(triggerButton, 'closing') ) {
 					return true;
 				}
 				Array.prototype.forEach.call(document.querySelectorAll('div.overlay'), function(overlay) {
 					if (btn.getAttribute('data-area') == overlay.getAttribute('data-area')) {
 						var container = document.querySelector('div.' + btn.getAttribute('data-container')),
+							menuCont = overlay.querySelector('.menu-container'),
+							masthead = document.getElementById("masthead"),
 							inputField = overlay.querySelector('.search-field');
 						if (classie.has(overlay, 'open')) {
+							globalBtnn = false;
 							window.dispatchEvent(menuClose);
 							overlayOpened = false;
 							classie.remove(overlay, 'open');
-							classie.remove(container, 'overlay-open');
 							classie.add(overlay, 'close');
 							classie.remove(overlay, 'open-items');
+							classie.remove(document.documentElement, 'menu-overlay-open');
+							requestTimeout(function(){
+								if ( classie.has( masthead, 'style-dark-stop' ) ) {
+									classie.remove( masthead, 'style-dark-stop' );
+									classie.remove( masthead, 'style-light-override' );
+									classie.add( masthead, 'style-dark-override' );
+								} else if ( classie.has( masthead, 'style-light-stop' ) ) {
+									classie.remove( masthead, 'style-light-stop' );
+									classie.remove( masthead, 'style-dark-override' );
+									classie.add( masthead, 'style-light-override' );
+								}
+								// if ( classie.has( masthead, 'is_stuck-stop' ) ) {
+								// 	classie.remove( masthead, 'is_stuck-stop' );
+								// 	classie.add( masthead, 'is_stuck' );
+								// }
+								classie.remove(document.documentElement, 'overlay-open');
+							}, 500);
 							var onEndTransitionFn = function(ev) {
 								if (transitionEvent) {
 									if (ev.propertyName !== 'visibility') return;
 									this.removeEventListener(transitionEvent, onEndTransitionFn);
 								}
 								classie.remove(overlay, 'close');
+								if ( sequential !== false ) {
+									toggleOverlay(sequential);
+									sequential = false;
+								}
 							};
 							if (transitionEvent) {
 								overlay.addEventListener(transitionEvent, onEndTransitionFn);
@@ -2270,10 +2207,32 @@ function whichAnimationEvent() {
 								onEndTransitionFn();
 							}
 						} else if (!classie.has(overlay, 'close') && !classie.hasClass(btn, 'overlay-close')) {
+							globalBtnn = btn;
 							window.dispatchEvent(menuOpen);
 							overlayOpened = true;
 							classie.add(overlay, 'open');
 							classie.add(container, 'overlay-open');
+							if ( wwidth > mediaQuery && overlay.getAttribute('data-area') != 'search' ) {
+								classie.add(document.documentElement, 'overlay-open');
+								classie.add(document.documentElement, 'menu-overlay-open');
+							}
+							if ( classie.has( menuCont, 'style-light' ) ) {
+								if ( classie.has( masthead, 'style-dark-override' ) && ! classie.has( masthead, 'style-light-override' ) ) {
+									classie.remove( masthead, 'style-dark-override' );
+									classie.add( masthead, 'style-dark-stop' );
+									classie.add( masthead, 'style-light-override' );
+								}
+							} else if ( classie.has( menuCont, 'style-dark' ) ) {
+								if ( classie.has( masthead, 'style-light-override' ) && ! classie.has( masthead, 'style-dark-override' ) ) {
+									classie.remove( masthead, 'style-light-override' );
+									classie.add( masthead, 'style-light-stop' );
+									classie.add( masthead, 'style-dark-override' );
+								}
+							}
+							// if ( classie.has( masthead, 'is_stuck' ) ) {
+							// 	classie.remove( masthead, 'is_stuck' );
+							// 	classie.add( masthead, 'is_stuck-stop' );
+							// }
 							if (jQuery('body.menu-overlay').length == 0 && inputField != null) {
 								setTimeout(function() {
 									inputField.focus();
@@ -2300,26 +2259,36 @@ function whichAnimationEvent() {
 					});
 					setTimeout(function() {
 						classie.removeClass(triggerButton, 'closing');
-						triggerButton.style.opacity = 1;
+						// triggerButton.style.opacity = 1;
 						Array.prototype.forEach.call(closeButtons, function(closeButton) {
 							if (!classie.hasClass(closeButton, 'menu-close-search')) {
 								classie.removeClass(closeButton, 'closing');
-								closeButton.style.opacity = 0;
+								// closeButton.style.opacity = 0;
 							}
 						});
-					}, 800);
+					}, 1000);
 				} else {
 					UNCODE.menuOpened = true;
-					triggerButton.style.opacity = 0;
+					// triggerButton.style.opacity = 0;
 					var getBtnRect = !classie.hasClass(triggerButton, 'search-icon') ? triggerButton.getBoundingClientRect() : null;
+					classie.addClass(triggerButton, 'opening');
 					Array.prototype.forEach.call(closeButtons, function(closeButton) {
 						if (!classie.hasClass(closeButton, 'menu-close-search')) {
-							classie.addClass(triggerButton, 'close');
-							if (getBtnRect != null) closeButton.setAttribute('style', 'top:' + getBtnRect.top + 'px; left:'+ getBtnRect.left + 'px !important');
+							// classie.addClass(triggerButton, 'close');
+							// if (getBtnRect != null) closeButton.setAttribute('style', 'top:' + getBtnRect.top + 'px; left:'+ getBtnRect.left + 'px !important');
 							classie.addClass(closeButton, 'close');
-							closeButton.style.opacity = 1;
+							classie.addClass(closeButton, 'opening');
+							// closeButton.style.opacity = 1;
 						}
 					});
+					setTimeout(function() {
+						classie.removeClass(triggerButton, 'opening');
+						Array.prototype.forEach.call(closeButtons, function(closeButton) {
+							if (!classie.hasClass(closeButton, 'menu-close-search')) {
+								classie.removeClass(closeButton, 'opening');
+							}
+						});
+					}, 1000);
 					window.addEventListener("resize", function() {
 						positionCloseBtn(triggerButton, closeButtons);
 					});
@@ -2327,12 +2296,12 @@ function whichAnimationEvent() {
 			}
 			function positionCloseBtn(triggerButton, closeButtons){
 				var getBtnRect = !classie.hasClass(triggerButton, 'search-icon') ? triggerButton.getBoundingClientRect() : null;
-				Array.prototype.forEach.call(closeButtons, function(closeButton) {
-					if (!classie.hasClass(closeButton, 'menu-close-search')) {
-						if (getBtnRect != null) closeButton.setAttribute('style', 'top:' + getBtnRect.top + 'px; left:'+ getBtnRect.left + 'px !important');
-						closeButton.style.opacity = 1;
-					}
-				});
+				// Array.prototype.forEach.call(closeButtons, function(closeButton) {
+				// 	if (!classie.hasClass(closeButton, 'menu-close-search')) {
+				// 		if (getBtnRect != null) closeButton.setAttribute('style', 'top:' + getBtnRect.top + 'px; left:'+ getBtnRect.left + 'px !important');
+				// 		closeButton.style.opacity = 1;
+				// 	}
+				// });
 			}
 			(function bindEscape() {
 				document.onkeydown = function(evt) {
@@ -2353,7 +2322,7 @@ function whichAnimationEvent() {
 				};
 			})();
 			Array.prototype.forEach.call(document.querySelectorAll('.trigger-overlay'), function(triggerBttn) {
-				if ( UNCODE.menuOpened || ( classie.hasClass(document.body, 'vmenu') && UNCODE.wwidth >= 960 ) ) return;
+				if ( UNCODE.menuOpened || ( (classie.hasClass(document.body, 'vmenu') || classie.hasClass(triggerBttn, 'menu-button-offcanvas')) && UNCODE.wwidth >= 960 ) ) return;
 				triggerBttn.addEventListener('click', function(e) {
 					triggerButton = e.currentTarget;
 					// if (wwidth < mediaQuery && classie.hasClass(triggerButton, 'search-icon')) {
@@ -2365,20 +2334,33 @@ function whichAnimationEvent() {
 						// else {
 						// 	if (classie.addClass(triggerButton, 'search-icon')) return true;
 						// }
-						toggleOverlay(triggerButton);
+						if ( triggerButton.getAttribute('data-area') == 'search' ) {
+							if ( globalBtnn !== undefined && globalBtnn !== false && globalBtnn !== triggerButton ) {
+								sequential = triggerButton;
+								globalBtnn.dispatchEvent(new Event("click"));
+							} else {
+								window.dispatchEvent(new CustomEvent('menuMobileTrigged'));
+								toggleOverlay(triggerButton);
+							}
+						} else {
+							window.dispatchEvent(new CustomEvent('menuMobileTrigged'));
+							toggleOverlay(triggerButton);
+						}
 						e.preventDefault();
 						return false;
 					}
 				}, false);
 			});
-			Array.prototype.forEach.call(document.querySelectorAll('.overlay-close'), function(closeBttn) {
+			Array.prototype.forEach.call(document.querySelectorAll('.overlay-close, .menu-button-overlay'), function(closeBttn) {
 				closeButtons.push(closeBttn);
-				closeBttn.addEventListener('click', function(e) {
-					// if (wwidth > mediaQuery) toggleOverlay(closeBttn);
-					toggleOverlay(closeBttn);
-					e.preventDefault();
-					return false;
-				}, false);
+				if ( classie.hasClass(closeBttn, 'menu-close-search') ) {
+					closeBttn.addEventListener('click', function(e) {
+						// if (wwidth > mediaQuery) toggleOverlay(closeBttn);
+						toggleOverlay(closeBttn);
+						e.preventDefault();
+						return false;
+					}, false);
+				}
 			});
 		},
 		/** All scrolling functions - Begin */
@@ -2905,6 +2887,40 @@ function whichAnimationEvent() {
 				}, 100 );
 			}
 		},
+		/** Custom Cursor **/
+		initCursor = function(){
+			var clientX, clientY;
+
+			var $customCursor = document.getElementById('uncode-custom-cursor'),
+				$customPilot = document.getElementById('uncode-custom-cursor-pilot'),
+				cursorType = 'auto',
+				loadedCursor = false;
+
+			document.addEventListener("mousemove", function(e) {
+				clientX = e.clientX;
+				clientY = e.clientY;
+
+				if ( loadedCursor !== true ) {
+					loadedCursor = true;
+					classie.addClass($customCursor, 'loaded-cursor');
+					if ( $customPilot !== null ) {
+						classie.addClass($customPilot, 'loaded-cursor');
+					}
+				}
+			});
+
+			function render() {
+				if ( $customCursor != null ) {
+					$customCursor.style.transform = 'translate3d(' + clientX + 'px, ' + clientY + 'px, 0)';
+					if ( $customPilot !== null ) {
+						$customPilot.style.transform = 'translate3d(' + clientX + 'px, ' + clientY + 'px, 0)';
+					}
+					requestAnimationFrame(render);
+				}
+			};
+			requestAnimationFrame(render);
+		},
+
 		/** Shape Dividers **/
 		shapeDivider = function() {
 			var $shape = '.uncode-divider-wrap';
@@ -3021,6 +3037,18 @@ function whichAnimationEvent() {
 	function hideFooterScroll() {
 		if (classie.hasClass(document.body, 'hide-scrollup')) footerScroller[0].style.display = "none";
 	}
+	window.addEventListener("load", function(event) {
+		if (SiteParameters.dynamic_srcset_active === '1') {
+			UNCODE.adaptive_srcset_bg();
+			UNCODE.adaptive_srcset(false);
+		}
+		classie.addClass(document.body, 'uncode-loaded');
+	});
+	window.addEventListener("dynamic_srcset_load", function(event) {
+		if (SiteParameters.dynamic_srcset_active === '1') {
+			UNCODE.refresh_dynamic_srcset_size(false);
+		}
+	});
 	document.addEventListener("DOMContentLoaded", function(event) {
 		UNCODE.adaptive();
 		boxWrapper = document.querySelectorAll('.box-wrapper');
@@ -3046,6 +3074,7 @@ function whichAnimationEvent() {
 			el.style.marginBottom = '';
 		});
 		setRowHeight(document.querySelectorAll('.page-wrapper .row-parent, footer .row-parent'));
+		initVideoComponent(document.body, '.uncode-video-container.video:not(.drop-move), .uncode-video-container.self-video:not(.drop-move)');
 	});
 	/** On resize events **/
 	window.addEventListener("vc-resize", function() {
@@ -3084,10 +3113,18 @@ function whichAnimationEvent() {
 		resizeTimer_ = setTimeout(function() {
 			if (isSplitMenu) centerSplitMenu();
 		}, 10);
-		if ( ! UNCODE.setIsScrolling ) {
+		resizeThrottle(
+			function() {
+				if (SiteParameters.dynamic_srcset_active === '1') {
+					UNCODE.refresh_dynamic_srcset_size(false);
+				}
+				menuOpacity();
+			}, 100
+		);
+		if ( UNCODE.setIsScrolling !== true ) {
 			clearTimeout(resizeTimer);
 			resizeTimer = setTimeout(function() {
-				if ( ! UNCODE.setIsScrolling ) {
+				if ( UNCODE.setIsScrolling !== true ) {
 					UNCODE.wheight = wheight = (window.innerHeight || document.documentElement.clientHeight) - (bodyBorder * 2);
 					Array.prototype.forEach.call(document.querySelectorAll('.row-inner'), function(el) {
 						el.style.height = '';
@@ -3096,11 +3133,19 @@ function whichAnimationEvent() {
 					setRowHeight(document.querySelectorAll('.page-wrapper .row-parent, footer .row-parent'), false, true);
 				}
 				if (!isMobile) {
-					initVideoComponent(document.body, '.uncode-video-container.video, .uncode-video-container.self-video');
+					initVideoComponent(document.body, '.uncode-video-container.video:not(.drop-move), .uncode-video-container.self-video:not(.drop-move)');
 				}
 			}, 500);
 		}
 	});
+
+	var resizeThrottle = (function () {
+		var timer = 0;
+		return function (callback, ms) {
+			clearTimeout(timer);
+			timer = setTimeout(callback, ms);
+		};
+	})();
 
 	/**
 	 * On DOM ready
@@ -3108,8 +3153,10 @@ function whichAnimationEvent() {
 	window.addEventListener("load", function(){
 		if (!UNCODE.isMobile) {
 			setTimeout(function() {
-				window.dispatchEvent(UNCODE.boxEvent);
-				Waypoint.refreshAll();
+				// window.dispatchEvent(UNCODE.boxEvent);
+				if (typeof Waypoint !== 'undefined') {
+					Waypoint.refreshAll();
+				}
 			}, 2000);
 		}
 		//repeat it for mobile since it changes layout on carousel after DOM loading
@@ -3119,15 +3166,50 @@ function whichAnimationEvent() {
 		}
 		backwashHeader(bodyTop);
 		backwashRowCol(bodyTop);
+		scrollFunction();
 		showHideScrollup(bodyTop);
-		if (document.createEvent) { // W3C
-			var ev = document.createEvent('Event');
-			ev.initEvent('resize', true, true);
-			window.dispatchEvent(ev);
-		} else { // IE
-			document.fireEvent('onresize');
+
+		// if (document.createEvent) { // W3C
+		// 	var ev = document.createEvent('Event');
+		// 	ev.initEvent('resize', true, true);
+		// 	window.dispatchEvent(ev);
+		// } else { // IE
+		// 	document.fireEvent('onresize');
+		// }
+
+		scrollRowHeight_fix = window.pageYOffset;
+		docheight = (boxWrapper != undefined && boxWrapper[0] != undefined) ? boxWrapper[0].offsetHeight : 0;
+		var oldWidth = wwidth;
+		UNCODE.wwidth = wwidth = window.innerWidth || document.documentElement.clientWidth;
+		UNCODE.wheight = wheight = (window.innerHeight || document.documentElement.clientHeight) - (bodyBorder * 2);
+		if ( isSplitMenu && typeof resizeTimer_ === 'undefined' ) {
+			centerSplitMenu();
 		}
+
 	}, false);
+
+	function localStorageAvailable() {
+		try {
+			var storage = window['localStorage'],
+			x = '__storage_test__';
+			storage.setItem(x, x);
+			storage.removeItem(x);
+			return true;
+		} catch(e) {
+			return false;
+		}
+	}
+
+	/**
+	 * Print Dialog check
+	 */
+	window.addEventListener("beforeprint", function(event) {
+		UNCODE.printDialogOpen = true;
+	});
+	window.addEventListener("afterprint", function(event) {
+		UNCODE.printDialogOpen = false;
+		window.dispatchEvent(new Event('resize'));
+	});
 
 	var UNCODE = {
 		bodyTop: bodyTop,
@@ -3137,10 +3219,12 @@ function whichAnimationEvent() {
 		adminBarHeight: 0,
 		menuHeight: 0,
 		menuMobileHeight: 0,
+		menuOpacity: menuOpacity,
 		fixMenuHeight: fixMenuHeight,
 		verticalRightMenu: verticalRightMenu,
 		initHeader: initHeader,
 		initRow: initRow,
+		initCursor: initCursor,
 		setRowHeight: setRowHeight,
 		switchColorsMenu: switchColorsMenu,
 		isMobile: isMobile,
@@ -3149,10 +3233,14 @@ function whichAnimationEvent() {
 		menuOpened: false,
 		menuMobileTriggerEvent: menuMobileTriggerEvent,
 		mediaQuery: mediaQuery,
+		mediaQueryMobile: mediaQueryMobile,
 		initVideoComponent: initVideoComponent,
 		hideMenu: hideMenu,
 		wwidth: wwidth,
 		wheight: wheight,
+		printDialogOpen: printDialogOpen,
+		webp_lossy_supported: SiteParameters.force_webp ? true : localStorageAvailable() && localStorage.getItem('webp_lossy_supported') === 'true' ? true : false,
+		webp_lossless_supported: SiteParameters.force_webp ? true : localStorageAvailable() && localStorage.getItem('webp_lossless_supported') === 'true' ? true : false,
 	};
 	// transport
 	if (typeof define === 'function' && define.amd) {
@@ -3163,7 +3251,48 @@ function whichAnimationEvent() {
 		window.UNCODE = UNCODE;
 	}
 
+	UNCODE.check_webp_support = function(feature, callback) {
+		// https://developers.google.com/speed/webp/faq#in_your_own_javascript
+		var kTestImages = {
+			lossy: "UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA",
+			lossless: "UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==",
+			alpha: "UklGRkoAAABXRUJQVlA4WAoAAAAQAAAAAAAAAAAAQUxQSAwAAAARBxAR/Q9ERP8DAABWUDggGAAAABQBAJ0BKgEAAQAAAP4AAA3AAP7mtQAAAA==",
+			// animation: "UklGRlIAAABXRUJQVlA4WAoAAAASAAAAAAAAAAAAQU5JTQYAAAD/////AABBTk1GJgAAAAAAAAAAAAAAAAAAAGQAAABWUDhMDQAAAC8AAAAQBxAREYiI/gcA"
+		};
+		var img = new Image();
+		img.onload = function () {
+			var result = (img.width > 0) && (img.height > 0);
+			callback(feature, result);
+		};
+		img.onerror = function () {
+			callback(feature, false);
+		};
+		img.src = "data:image/webp;base64," + kTestImages[feature];
+	}
+
+	UNCODE.check_webp_support('lossy', function (feature, isSupported) {
+		if (isSupported) {
+			UNCODE.webp_lossy_supported = true;
+			if (localStorageAvailable()) {
+				localStorage.setItem('webp_lossy_supported', true);
+			}
+		}
+	});
+
+	UNCODE.check_webp_support('lossless', function (feature, isSupported) {
+		if (isSupported) {
+			UNCODE.webp_lossless_supported = true;
+			if (localStorageAvailable()) {
+				localStorage.setItem('webp_lossless_supported', true);
+			}
+		}
+	});
+
 	UNCODE.adaptive = function() {
+		if (SiteParameters.dynamic_srcset_active === '1') {
+			return;
+		}
+
 		var images = new Array(),
 			getImages = document.querySelectorAll('.adaptive-async:not(.adaptive-fetching)');
 		for (var i = 0; i < getImages.length; i++) {
@@ -3187,6 +3316,9 @@ function whichAnimationEvent() {
 		var post_data = {
 			images: JSON.stringify(images),
 			action: 'get_adaptive_async',
+			ai_breakpoints: SiteParameters.ai_breakpoints,
+			resize_quality: SiteParameters.resize_quality,
+			register_metadata: SiteParameters.register_metadata,
 			nonce_adaptive_images: SiteParameters.nonce_adaptive_images
 		};
 
@@ -3205,8 +3337,12 @@ function whichAnimationEvent() {
 							var images = jsonResponse.data.images;
 
 							for (var i = 0; i < images.length; i++) {
-								var val = images[i],
-									getImage = document.querySelectorAll('[data-uniqueid="'+val.unique+'"]');
+								var val = images[i];
+								var processedImageID = val.id;
+								var processedImageUniqueID = val.unique;
+								var processedImageisNew = val.new_crop === true ? true : false;
+								var getImage = document.querySelectorAll('[data-uniqueid="'+processedImageUniqueID+'"]');
+
 								for (var j = 0; j < getImage.length; j++) {
 									var attrScr = getImage[j].getAttribute('src'),
 									replaceImg = new Image();
@@ -3249,6 +3385,7 @@ function whichAnimationEvent() {
 											}
 
 											classie.addClass(_this.el, 'async-done');
+											_this.el.dispatchEvent(new CustomEvent("async-done"));
 										} else {
 											if (_this.source !== null) {
 												placeH = document.createElement("IMG");
@@ -3319,10 +3456,15 @@ function whichAnimationEvent() {
 													parentNode.removeChild(placeH);
 												}
 												classie.addClass(_this.el, 'async-done');
+												_this.el.dispatchEvent(new CustomEvent("async-done"));
 											}, 250);
 										}
 									}
 									replaceImg.src = val.url;
+								}
+
+								if (processedImageisNew && SiteParameters.optimize_shortpixel_image == true) {
+									UNCODE.process_shortpixel_image(processedImageID);
 								}
 							}
 
@@ -3378,1130 +3520,387 @@ function whichAnimationEvent() {
 		}
 	};
 
-})(window);
+	UNCODE.adaptive_srcset_replace_bg = function(currentRow) {
+		if (currentRow === null) {
+			return;
+		}
 
-/**
- * vivus - JavaScript library to make drawing animation on SVG
- * @version v0.4.4
- * @link https://github.com/maxwellito/vivus
- * @license MIT
- */
+		var mobileBreakpoint = SiteParameters.dynamic_srcset_bg_mobile_breakpoint ? parseInt(SiteParameters.dynamic_srcset_bg_mobile_breakpoint, 10) : 570;
+		var images = currentRow.querySelectorAll('.srcset-bg-async');
 
-'use strict';
+		for (var i = 0; i < images.length; i++) {
+			var el = images[i];
+			var bg_url = el.dataset.backgroundImage;
+			var mobile_bg_url = el.dataset.mobileBackgroundImage;
 
-(function () {
+			if (SiteParameters.activate_webp && el.dataset.backgroundImageWebp) {
+				if ((el.dataset.mime === 'png' && UNCODE.webp_lossless_supported) || (el.dataset.mime === 'jpeg' && UNCODE.webp_lossy_supported)) {
+					bg_url = el.dataset.backgroundImageWebp;
+					el.dataset.backgroundImage = bg_url;
+					el.removeAttribute('data-background-image-webp');
+				}
+			}
 
-  'use strict';
+			if (SiteParameters.activate_webp && el.dataset.mobileBackgroundImageWebp && mobile_bg_url) {
+				if ((el.dataset.mime === 'png' && UNCODE.webp_lossless_supported) || (el.dataset.mime === 'jpeg' && UNCODE.webp_lossy_supported)) {
+					mobile_bg_url = el.dataset.mobileBackgroundImageWebp;
+					el.dataset.mobileBackgroundImage = mobile_bg_url;
+					el.removeAttribute('data-mobile-background-image-webp');
+				}
+			}
 
-/**
- * Pathformer
- * Beta version
- *
- * Take any SVG version 1.1 and transform
- * child elements to 'path' elements
- *
- * This code is purely forked from
- * https://github.com/Waest/SVGPathConverter
- */
+			if (screenInfo.width <= mobileBreakpoint && mobile_bg_url) {
+				el.style.backgroundImage = 'url("' + mobile_bg_url + '")';
+			} else {
+				el.style.backgroundImage = 'url("' + bg_url + '")';
+			}
 
-/**
- * Class constructor
- *
- * @param {DOM|String} element Dom element of the SVG or id of it
- */
-function Pathformer(element) {
-  // Test params
-  if (typeof element === 'undefined') {
-	throw new Error('Pathformer [constructor]: "element" parameter is required');
-  }
-
-  // Set the element
-  if (element.constructor === String) {
-	element = document.getElementById(element);
-	if (!element) {
-	  throw new Error('Pathformer [constructor]: "element" parameter is not related to an existing ID');
+			classie.addClass(el, 'srcset-bg-async');
+		}
 	}
-  }
-  if (element instanceof window.SVGElement ||
-	  element instanceof window.SVGGElement ||
-	  /^svg$/i.test(element.nodeName)) {
-	this.el = element;
-  } else {
-	throw new Error('Pathformer [constructor]: "element" parameter must be a string or a SVGelement');
-  }
-
-  // Start
-  this.scan(element);
-}
-
-/**
- * List of tags which can be transformed
- * to path elements
- *
- * @type {Array}
- */
-Pathformer.prototype.TYPES = ['line', 'ellipse', 'circle', 'polygon', 'polyline', 'rect'];
-
-/**
- * List of attribute names which contain
- * data. This array list them to check if
- * they contain bad values, like percentage.
- *
- * @type {Array}
- */
-Pathformer.prototype.ATTR_WATCH = ['cx', 'cy', 'points', 'r', 'rx', 'ry', 'x', 'x1', 'x2', 'y', 'y1', 'y2'];
-
-/**
- * Finds the elements compatible for transform
- * and apply the liked method
- *
- * @param  {object} options Object from the constructor
- */
-Pathformer.prototype.scan = function (svg) {
-  var fn, element, pathData, pathDom,
-	  elements = svg.querySelectorAll(this.TYPES.join(','));
-
-  for (var i = 0; i < elements.length; i++) {
-	element = elements[i];
-	fn = this[element.tagName.toLowerCase() + 'ToPath'];
-	pathData = fn(this.parseAttr(element.attributes));
-	pathDom = this.pathMaker(element, pathData);
-	element.parentNode.replaceChild(pathDom, element);
-  }
-};
-
-
-/**
- * Read `line` element to extract and transform
- * data, to make it ready for a `path` object.
- *
- * @param  {DOMelement} element Line element to transform
- * @return {object}			 Data for a `path` element
- */
-Pathformer.prototype.lineToPath = function (element) {
-  var newElement = {},
-	  x1 = element.x1 || 0,
-	  y1 = element.y1 || 0,
-	  x2 = element.x2 || 0,
-	  y2 = element.y2 || 0;
-
-  newElement.d = 'M' + x1 + ',' + y1 + 'L' + x2 + ',' + y2;
-  return newElement;
-};
-
-/**
- * Read `rect` element to extract and transform
- * data, to make it ready for a `path` object.
- * The radius-border is not taken in charge yet.
- * (your help is more than welcomed)
- *
- * @param  {DOMelement} element Rect element to transform
- * @return {object}             Data for a `path` element
- */
-Pathformer.prototype.rectToPath = function (element) {
-  var newElement = {},
-      x      = parseFloat(element.x)      || 0,
-      y      = parseFloat(element.y)      || 0,
-      width  = parseFloat(element.width)  || 0,
-      height = parseFloat(element.height) || 0;
-
-  if (element.rx || element.ry) {
-    var rx = parseInt(element.rx, 10) || -1,
-        ry = parseInt(element.ry, 10) || -1;
-    rx = Math.min(Math.max(rx < 0 ? ry : rx, 0), width/2);
-    ry = Math.min(Math.max(ry < 0 ? rx : ry, 0), height/2);
-
-    newElement.d = 'M ' + (x + rx) + ',' + y + ' ' +
-                   'L ' + (x + width - rx) + ',' + y + ' ' +
-                   'A ' + rx + ',' + ry + ',0,0,1,' + (x + width) + ',' + (y + ry) + ' ' +
-                   'L ' + (x + width) + ',' + (y + height - ry) + ' ' +
-                   'A ' + rx + ',' + ry + ',0,0,1,' + (x + width - rx) + ',' + (y + height) + ' ' +
-                   'L ' + (x + rx) + ',' + (y + height) + ' ' +
-                   'A ' + rx + ',' + ry + ',0,0,1,' + x + ',' + (y + height - ry) + ' ' +
-                   'L ' + x + ',' + (y + ry) + ' ' +
-                   'A ' + rx + ',' + ry + ',0,0,1,' + (x + rx) + ',' + y;
-  }
-  else {
-    newElement.d = 'M' + x + ' ' + y + ' ' +
-                   'L' + (x + width) + ' ' + y + ' ' +
-                   'L' + (x + width) + ' ' + (y + height) + ' ' +
-                   'L' + x + ' ' + (y + height) + ' Z';
-  }
-  return newElement;
-};
-
-/**
- * Read `polyline` element to extract and transform
- * data, to make it ready for a `path` object.
- *
- * @param  {DOMelement} element Polyline element to transform
- * @return {object}             Data for a `path` element
- */
-Pathformer.prototype.polylineToPath = function (element) {
-  var newElement = {},
-      points = element.points.trim().split(' '),
-      i, path;
-
-  // Reformatting if points are defined without commas
-  if (element.points.indexOf(',') === -1) {
-    var formattedPoints = [];
-    for (i = 0; i < points.length; i+=2) {
-      formattedPoints.push(points[i] + ',' + points[i+1]);
-    }
-    points = formattedPoints;
-  }
-
-  // Generate the path.d value
-  path = 'M' + points[0];
-  for(i = 1; i < points.length; i++) {
-    if (points[i].indexOf(',') !== -1) {
-      path += 'L' + points[i];
-    }
-  }
-  newElement.d = path;
-  return newElement;
-};
-
-/**
- * Read `polygon` element to extract and transform
- * data, to make it ready for a `path` object.
- * This method rely on polylineToPath, because the
- * logic is similar. The path created is just closed,
- * so it needs an 'Z' at the end.
- *
- * @param  {DOMelement} element Polygon element to transform
- * @return {object}             Data for a `path` element
- */
-Pathformer.prototype.polygonToPath = function (element) {
-  var newElement = Pathformer.prototype.polylineToPath(element);
-
-  newElement.d += 'Z';
-  return newElement;
-};
-
-/**
- * Read `ellipse` element to extract and transform
- * data, to make it ready for a `path` object.
- *
- * @param  {DOMelement} element ellipse element to transform
- * @return {object}             Data for a `path` element
- */
-Pathformer.prototype.ellipseToPath = function (element) {
-  var newElement = {},
-      rx = parseFloat(element.rx) || 0,
-      ry = parseFloat(element.ry) || 0,
-      cx = parseFloat(element.cx) || 0,
-      cy = parseFloat(element.cy) || 0,
-      startX = cx - rx,
-      startY = cy,
-      endX = parseFloat(cx) + parseFloat(rx),
-      endY = cy;
-
-  newElement.d = 'M' + startX + ',' + startY +
-                 'A' + rx + ',' + ry + ' 0,1,1 ' + endX + ',' + endY +
-                 'A' + rx + ',' + ry + ' 0,1,1 ' + startX + ',' + endY;
-  return newElement;
-};
-
-/**
- * Read `circle` element to extract and transform
- * data, to make it ready for a `path` object.
- *
- * @param  {DOMelement} element Circle element to transform
- * @return {object}             Data for a `path` element
- */
-Pathformer.prototype.circleToPath = function (element) {
-  var newElement = {},
-      r  = parseFloat(element.r)  || 0,
-      cx = parseFloat(element.cx) || 0,
-      cy = parseFloat(element.cy) || 0,
-      startX = cx - r,
-      startY = cy,
-      endX = parseFloat(cx) + parseFloat(r),
-      endY = cy;
-
-  newElement.d =  'M' + startX + ',' + startY +
-                  'A' + r + ',' + r + ' 0,1,1 ' + endX + ',' + endY +
-                  'A' + r + ',' + r + ' 0,1,1 ' + startX + ',' + endY;
-  return newElement;
-};
-
-/**
- * Create `path` elements form original element
- * and prepared objects
- *
- * @param  {DOMelement} element  Original element to transform
- * @param  {object} pathData     Path data (from `toPath` methods)
- * @return {DOMelement}          Path element
- */
-Pathformer.prototype.pathMaker = function (element, pathData) {
-  var i, attr, pathTag = document.createElementNS('http://www.w3.org/2000/svg','path');
-  for(i = 0; i < element.attributes.length; i++) {
-    attr = element.attributes[i];
-    if (this.ATTR_WATCH.indexOf(attr.name) === -1) {
-      pathTag.setAttribute(attr.name, attr.value);
-    }
-  }
-  for(i in pathData) {
-    pathTag.setAttribute(i, pathData[i]);
-  }
-  return pathTag;
-};
-
-/**
- * Parse attributes of a DOM element to
- * get an object of attribute => value
- *
- * @param  {NamedNodeMap} attributes Attributes object from DOM element to parse
- * @return {object}                  Object of attributes
- */
-Pathformer.prototype.parseAttr = function (element) {
-  var attr, output = {};
-  for (var i = 0; i < element.length; i++) {
-    attr = element[i];
-    // Check if no data attribute contains '%', or the transformation is impossible
-    if (this.ATTR_WATCH.indexOf(attr.name) !== -1 && attr.value.indexOf('%') !== -1) {
-      throw new Error('Pathformer [parseAttr]: a SVG shape got values in percentage. This cannot be transformed into \'path\' tags. Please use \'viewBox\'.');
-    }
-    output[attr.name] = attr.value;
-  }
-  return output;
-};
-
-  'use strict';
-
-var setupEnv, requestAnimFrame, cancelAnimFrame, parsePositiveInt;
-
-/**
- * Vivus
- * Beta version
- *
- * Take any SVG and make the animation
- * to give give the impression of live drawing
- *
- * This in more than just inspired from codrops
- * At that point, it's a pure fork.
- */
-
-/**
- * Class constructor
- * option structure
- *   type: 'delayed'|'sync'|'oneByOne'|'script' (to know if the items must be drawn synchronously or not, default: delayed)
- *   duration: <int> (in frames)
- *   start: 'inViewport'|'manual'|'autostart' (start automatically the animation, default: inViewport)
- *   delay: <int> (delay between the drawing of first and last path)
- *   dashGap <integer> whitespace extra margin between dashes
- *   pathTimingFunction <function> timing animation function for each path element of the SVG
- *   animTimingFunction <function> timing animation function for the complete SVG
- *   forceRender <boolean> force the browser to re-render all updated path items
- *   selfDestroy <boolean> removes all extra styling on the SVG, and leaves it as original
- *
- * The attribute 'type' is by default on 'delayed'.
- *  - 'delayed'
- *    all paths are draw at the same time but with a
- *    little delay between them before start
- *  - 'sync'
- *    all path are start and finish at the same time
- *  - 'oneByOne'
- *    only one path is draw at the time
- *    the end of the first one will trigger the draw
- *    of the next one
- *
- * All these values can be overwritten individually
- * for each path item in the SVG
- * The value of frames will always take the advantage of
- * the duration value.
- * If you fail somewhere, an error will be thrown.
- * Good luck.
- *
- * @constructor
- * @this {Vivus}
- * @param {DOM|String}   element  Dom element of the SVG or id of it
- * @param {Object}       options  Options about the animation
- * @param {Function}     callback Callback for the end of the animation
- */
-function Vivus (element, options, callback) {
-
-  setupEnv();
-
-  // Setup
-  this.isReady = false;
-  this.setElement(element, options);
-  this.setOptions(options);
-  this.setCallback(callback);
-
-  if (this.isReady) {
-    this.init();
-  }
-}
-
-/**
- * Timing functions
- **************************************
- *
- * Default functions to help developers.
- * It always take a number as parameter (between 0 to 1) then
- * return a number (between 0 and 1)
- */
-Vivus.LINEAR          = function (x) {return x;};
-Vivus.EASE            = function (x) {return -Math.cos(x * Math.PI) / 2 + 0.5;};
-Vivus.EASE_OUT        = function (x) {return 1 - Math.pow(1-x, 3);};
-Vivus.EASE_IN         = function (x) {return Math.pow(x, 3);};
-Vivus.EASE_OUT_BOUNCE = function (x) {
-  var base = -Math.cos(x * (0.5 * Math.PI)) + 1,
-    rate = Math.pow(base,1.5),
-    rateR = Math.pow(1 - x, 2),
-    progress = -Math.abs(Math.cos(rate * (2.5 * Math.PI) )) + 1;
-  return (1- rateR) + (progress * rateR);
-};
-
-
-/**
- * Setters
- **************************************
- */
-
-/**
- * Check and set the element in the instance
- * The method will not return anything, but will throw an
- * error if the parameter is invalid
- *
- * @param {DOM|String}   element  SVG Dom element or id of it
- */
-Vivus.prototype.setElement = function (element, options) {
-  var onLoad, self;
-
-  // Basic check
-  if (typeof element === 'undefined') {
-    throw new Error('Vivus [constructor]: "element" parameter is required');
-  }
-
-  // Set the element
-  if (element.constructor === String) {
-    element = document.getElementById(element);
-    if (!element) {
-      throw new Error('Vivus [constructor]: "element" parameter is not related to an existing ID');
-    }
-  }
-  this.parentEl = element;
-
-  // Load the SVG with XMLHttpRequest and extract the SVG
-  if (options && options.file) {
-    var self = this;
-    onLoad = function (e) {
-      var domSandbox = document.createElement('div');
-      domSandbox.innerHTML = this.responseText;
-
-      var svgTag = domSandbox.querySelector('svg');
-      if (!svgTag) {
-        throw new Error('Vivus [load]: Cannot find the SVG in the loaded file : ' + options.file);
-      }
-
-      self.el = svgTag
-      self.el.setAttribute('width', '100%');
-      self.el.setAttribute('height', '100%');
-      self.parentEl.appendChild(self.el)
-      self.isReady = true;
-      self.init();
-      self = null;
-    }
-
-    var oReq = new window.XMLHttpRequest();
-    oReq.addEventListener('load', onLoad);
-    oReq.open('GET', options.file);
-    oReq.send();
-    return;
-  }
-
-  switch (element.constructor) {
-  case window.SVGSVGElement:
-  case window.SVGElement:
-  case window.SVGGElement:
-    this.el = element;
-    this.isReady = true;
-    break;
-
-  case window.HTMLObjectElement:
-    self = this;
-    onLoad = function (e) {
-      if (self.isReady) {
-        return;
-      }
-      self.el = element.contentDocument && element.contentDocument.querySelector('svg');
-      if (!self.el && e) {
-        throw new Error('Vivus [constructor]: object loaded does not contain any SVG');
-      }
-      else if (self.el) {
-        if (element.getAttribute('built-by-vivus')) {
-          self.parentEl.insertBefore(self.el, element);
-          self.parentEl.removeChild(element);
-          self.el.setAttribute('width', '100%');
-          self.el.setAttribute('height', '100%');
-        }
-        self.isReady = true;
-        self.init();
-        self = null;
-      }
-    };
-
-    if (!onLoad()) {
-      element.addEventListener('load', onLoad);
-    }
-    break;
-
-  default:
-    throw new Error('Vivus [constructor]: "element" parameter is not valid (or miss the "file" attribute)');
-  }
-};
-
-/**
- * Set up user option to the instance
- * The method will not return anything, but will throw an
- * error if the parameter is invalid
- *
- * @param  {object} options Object from the constructor
- */
-Vivus.prototype.setOptions = function (options) {
-  var allowedTypes = ['delayed', 'sync', 'async', 'nsync', 'oneByOne', 'scenario', 'scenario-sync'];
-  var allowedStarts =  ['inViewport', 'manual', 'autostart'];
-
-  // Basic check
-  if (options !== undefined && options.constructor !== Object) {
-    throw new Error('Vivus [constructor]: "options" parameter must be an object');
-  }
-  else {
-    options = options || {};
-  }
-
-  // Set the animation type
-  if (options.type && allowedTypes.indexOf(options.type) === -1) {
-    throw new Error('Vivus [constructor]: ' + options.type + ' is not an existing animation `type`');
-  }
-  else {
-    this.type = options.type || allowedTypes[0];
-  }
-
-  // Set the start type
-  if (options.start && allowedStarts.indexOf(options.start) === -1) {
-    throw new Error('Vivus [constructor]: ' + options.start + ' is not an existing `start` option');
-  }
-  else {
-    this.start = options.start || allowedStarts[0];
-  }
-
-  this.isIE         = (window.navigator.userAgent.indexOf('MSIE') !== -1 || window.navigator.userAgent.indexOf('Trident/') !== -1 || window.navigator.userAgent.indexOf('Edge/') !== -1 );
-  this.duration     = parsePositiveInt(options.duration, 120);
-  this.delay        = parsePositiveInt(options.delay, null);
-  //Uncode addition
-  this.delayStart   = parsePositiveInt(options.delayStart, null);
-  //#END
-  this.dashGap      = parsePositiveInt(options.dashGap, 1);
-  this.forceRender  = options.hasOwnProperty('forceRender') ? !!options.forceRender : this.isIE;
-  this.reverseStack = !!options.reverseStack;
-  this.selfDestroy  = !!options.selfDestroy;
-  this.onReady      = options.onReady;
-  this.map          = [];
-  this.frameLength  = this.currentFrame = this.delayUnit = this.speed = this.handle = null;
-
-  this.ignoreInvisible = options.hasOwnProperty('ignoreInvisible') ? !!options.ignoreInvisible : false;
-
-  this.animTimingFunction = options.animTimingFunction || Vivus.LINEAR;
-  this.pathTimingFunction = options.pathTimingFunction || Vivus.LINEAR;
-
-  if (this.delay >= this.duration) {
-    throw new Error('Vivus [constructor]: delay must be shorter than duration');
-  }
-};
-
-/**
- * Set up callback to the instance
- * The method will not return enything, but will throw an
- * error if the parameter is invalid
- *
- * @param  {Function} callback Callback for the animation end
- */
-Vivus.prototype.setCallback = function (callback) {
-  // Basic check
-  if (!!callback && callback.constructor !== Function) {
-    throw new Error('Vivus [constructor]: "callback" parameter must be a function');
-  }
-  this.callback = callback || function () {};
-};
-
-
-/**
- * Core
- **************************************
- */
-
-/**
- * Map the svg, path by path.
- * The method return nothing, it just fill the
- * `map` array. Each item in this array represent
- * a path element from the SVG, with informations for
- * the animation.
- *
- * ```
- * [
- *   {
- *     el: <DOMobj> the path element
- *     length: <number> length of the path line
- *     startAt: <number> time start of the path animation (in frames)
- *     duration: <number> path animation duration (in frames)
- *   },
- *   ...
- * ]
- * ```
- *
- */
-Vivus.prototype.mapping = function () {
-  var i, paths, path, pAttrs, pathObj, totalLength, lengthMeter, timePoint;
-  timePoint = totalLength = lengthMeter = 0;
-  paths = this.el.querySelectorAll('path');
-
-  for (i = 0; i < paths.length; i++) {
-    path = paths[i];
-    if (this.isInvisible(path)) {
-      continue;
-    }
-    pathObj = {
-      el: path,
-      length: Math.ceil(path.getTotalLength())
-    };
-    // Test if the path length is correct
-    if (isNaN(pathObj.length)) {
-      if (window.console && console.warn) {
-        console.warn('Vivus [mapping]: cannot retrieve a path element length', path);
-      }
-      continue;
-    }
-    this.map.push(pathObj);
-    path.style.strokeDasharray  = pathObj.length + ' ' + (pathObj.length + this.dashGap * 2);
-    path.style.strokeDashoffset = pathObj.length + this.dashGap;
-    pathObj.length += this.dashGap;
-    totalLength += pathObj.length;
-
-    this.renderPath(i);
-  }
-
-  totalLength = totalLength === 0 ? 1 : totalLength;
-  this.delay = this.delay === null ? this.duration / 3 : this.delay;
-  this.delayUnit = this.delay / (paths.length > 1 ? paths.length - 1 : 1);
-
-  // Reverse stack if asked
-  if (this.reverseStack) {
-    this.map.reverse();
-  }
-
-  for (i = 0; i < this.map.length; i++) {
-    pathObj = this.map[i];
-
-    switch (this.type) {
-    case 'delayed':
-      pathObj.startAt = this.delayUnit * i;
-      pathObj.duration = this.duration - this.delay;
-      break;
-
-    case 'oneByOne':
-      pathObj.startAt = lengthMeter / totalLength * this.duration;
-      pathObj.duration = pathObj.length / totalLength * this.duration;
-      break;
-
-    case 'sync':
-    case 'async':
-    case 'nsync':
-      pathObj.startAt = 0;
-      pathObj.duration = this.duration;
-      break;
-
-    case 'scenario-sync':
-      path = pathObj.el;
-      pAttrs = this.parseAttr(path);
-      pathObj.startAt = timePoint + (parsePositiveInt(pAttrs['data-delay'], this.delayUnit) || 0);
-      pathObj.duration = parsePositiveInt(pAttrs['data-duration'], this.duration);
-      timePoint = pAttrs['data-async'] !== undefined ? pathObj.startAt : pathObj.startAt + pathObj.duration;
-      this.frameLength = Math.max(this.frameLength, (pathObj.startAt + pathObj.duration));
-      break;
-
-    case 'scenario':
-      path = pathObj.el;
-      pAttrs = this.parseAttr(path);
-      pathObj.startAt = parsePositiveInt(pAttrs['data-start'], this.delayUnit) || 0;
-      pathObj.duration = parsePositiveInt(pAttrs['data-duration'], this.duration);
-      this.frameLength = Math.max(this.frameLength, (pathObj.startAt + pathObj.duration));
-      break;
-    }
-    lengthMeter += pathObj.length;
-    this.frameLength = this.frameLength || this.duration;
-  }
-};
-
-/**
- * Interval method to draw the SVG from current
- * position of the animation. It update the value of
- * `currentFrame` and re-trace the SVG.
- *
- * It use this.handle to store the requestAnimationFrame
- * and clear it one the animation is stopped. So this
- * attribute can be used to know if the animation is
- * playing.
- *
- * Once the animation at the end, this method will
- * trigger the Vivus callback.
- *
- */
-Vivus.prototype.drawer = function () {
-  var self = this;
-  this.currentFrame += this.speed;
-
-  if (this.currentFrame <= 0) {
-    this.stop();
-    this.reset();
-  } else if (this.currentFrame >= this.frameLength) {
-    this.stop();
-    this.currentFrame = this.frameLength;
-    this.trace();
-    if (this.selfDestroy) {
-      this.destroy();
-    }
-  } else {
-    this.trace();
-    this.handle = requestAnimFrame(function () {
-      self.drawer();
-    });
-    return;
-  }
-
-  this.callback(this);
-  if (this.instanceCallback) {
-    this.instanceCallback(this);
-    this.instanceCallback = null;
-  }
-};
-
-/**
- * Draw the SVG at the current instant from the
- * `currentFrame` value. Here is where most of the magic is.
- * The trick is to use the `strokeDashoffset` style property.
- *
- * For optimisation reasons, a new property called `progress`
- * is added in each item of `map`. This one contain the current
- * progress of the path element. Only if the new value is different
- * the new value will be applied to the DOM element. This
- * method save a lot of resources to re-render the SVG. And could
- * be improved if the animation couldn't be played forward.
- *
- */
-Vivus.prototype.trace = function () {
-  var i, progress, path, currentFrame;
-  currentFrame = this.animTimingFunction(this.currentFrame / this.frameLength) * this.frameLength;
-  for (i = 0; i < this.map.length; i++) {
-    path = this.map[i];
-    progress = (currentFrame - path.startAt) / path.duration;
-    progress = this.pathTimingFunction(Math.max(0, Math.min(1, progress)));
-    if (path.progress !== progress) {
-      path.progress = progress;
-      path.el.style.strokeDashoffset = Math.floor(path.length * (1 - progress));
-      this.renderPath(i);
-    }
-  }
-};
-
-/**
- * Method forcing the browser to re-render a path element
- * from it's index in the map. Depending on the `forceRender`
- * value.
- * The trick is to replace the path element by it's clone.
- * This practice is not recommended because it's asking more
- * ressources, too much DOM manupulation..
- * but it's the only way to let the magic happen on IE.
- * By default, this fallback is only applied on IE.
- *
- * @param  {Number} index Path index
- */
-Vivus.prototype.renderPath = function (index) {
-  if (this.forceRender && this.map && this.map[index]) {
-    var pathObj = this.map[index],
-        newPath = pathObj.el.cloneNode(true);
-    pathObj.el.parentNode.replaceChild(newPath, pathObj.el);
-    pathObj.el = newPath;
-  }
-};
-
-/**
- * When the SVG object is loaded and ready,
- * this method will continue the initialisation.
- *
- * This this mainly due to the case of passing an
- * object tag in the constructor. It will wait
- * the end of the loading to initialise.
- *
- */
-Vivus.prototype.init = function () {
-  // Set object variables
-  this.frameLength = 0;
-  this.currentFrame = 0;
-  this.map = [];
-
-  // Start
-  new Pathformer(this.el);
-  this.mapping();
-  this.starter();
-
-  if (this.onReady) {
-    this.onReady(this);
-  }
-};
-
-/**
- * Trigger to start of the animation.
- * Depending on the `start` value, a different script
- * will be applied.
- *
- * If the `start` value is not valid, an error will be thrown.
- * Even if technically, this is impossible.
- *
- */
-Vivus.prototype.starter = function () {
-  switch (this.start) {
-  case 'manual':
-    return;
-
-  case 'autostart':
-    this.play();
-    break;
-
-  case 'inViewport':
-    var self = this,
-    listener = function () {
-      if (self.isInViewport(self.parentEl, 1)) {
-        self.play();
-        window.removeEventListener('scroll', listener);
-        //Uncode addition
-        window.removeEventListener('fp-slide-changed', listener);
-        window.removeEventListener('fp-slide-scroll', listener);
-        //#END
-      }
-    };
-    window.addEventListener('scroll', listener);
-    //Uncode addition
-    window.addEventListener('fp-slide-changed', listener);
-    window.addEventListener('fp-slide-scroll', listener);
-    //#END
-    listener();
-    break;
-  }
-};
-
-
-/**
- * Controls
- **************************************
- */
-
-/**
- * Get the current status of the animation between
- * three different states: 'start', 'progress', 'end'.
- * @return {string} Instance status
- */
-Vivus.prototype.getStatus = function () {
-  return this.currentFrame === 0 ? 'start' : this.currentFrame === this.frameLength ? 'end' : 'progress';
-};
-
-/**
- * Reset the instance to the initial state : undraw
- * Be careful, it just reset the animation, if you're
- * playing the animation, this won't stop it. But just
- * make it start from start.
- *
- */
-Vivus.prototype.reset = function () {
-  return this.setFrameProgress(0);
-};
-
-/**
- * Set the instance to the final state : drawn
- * Be careful, it just set the animation, if you're
- * playing the animation on rewind, this won't stop it.
- * But just make it start from the end.
- *
- */
-Vivus.prototype.finish = function () {
-  return this.setFrameProgress(1);
-};
-
-/**
- * Set the level of progress of the drawing.
- *
- * @param {number} progress Level of progress to set
- */
-Vivus.prototype.setFrameProgress = function (progress) {
-  progress = Math.min(1, Math.max(0, progress));
-  this.currentFrame = Math.round(this.frameLength * progress);
-  this.trace();
-  return this;
-};
-
-/**
- * Play the animation at the desired speed.
- * Speed must be a valid number (no zero).
- * By default, the speed value is 1.
- * But a negative value is accepted to go forward.
- *
- * And works with float too.
- * But don't forget we are in JavaScript, se be nice
- * with him and give him a 1/2^x value.
- *
- * @param  {number} speed Animation speed [optional]
- */
-Vivus.prototype.play = function (speed, callback) {
-  this.instanceCallback = null;
-
-  if (speed && typeof speed === 'function') {
-    this.instanceCallback = speed; // first parameter is actually the callback function
-    speed = null;
-  }
-  else if (speed && typeof speed !== 'number') {
-    throw new Error('Vivus [play]: invalid speed');
-  }
-  // if the first parameter wasn't the callback, check if the seconds was
-  if (callback && typeof(callback) === 'function' && !this.instanceCallback) {
-    this.instanceCallback = callback;
-  }
-
-
-  this.speed = speed || 1;
-  //Uncode addition
-  if (!this.handle) {
-    var $this = this,
-    delay = (this.delayStart != null) ? this.delayStart : 0;
-    setTimeout(function() {
-      $this.drawer();
-    }, delay);
-  }
-  //#END
-  return this;
-};
-
-/**
- * Stop the current animation, if on progress.
- * Should not trigger any error.
- *
- */
-Vivus.prototype.stop = function () {
-  if (this.handle) {
-    cancelAnimFrame(this.handle);
-    this.handle = null;
-  }
-  return this;
-};
-
-/**
- * Destroy the instance.
- * Remove all bad styling attributes on all
- * path tags
- *
- */
-Vivus.prototype.destroy = function () {
-  this.stop();
-  var i, path;
-  for (i = 0; i < this.map.length; i++) {
-    path = this.map[i];
-    path.el.style.strokeDashoffset = null;
-    path.el.style.strokeDasharray = null;
-    this.renderPath(i);
-  }
-};
-
-
-/**
- * Utils methods
- * include methods from Codrops
- **************************************
- */
-
-/**
- * Method to best guess if a path should added into
- * the animation or not.
- *
- * 1. Use the `data-vivus-ignore` attribute if set
- * 2. Check if the instance must ignore invisible paths
- * 3. Check if the path is visible
- *
- * For now the visibility checking is unstable.
- * It will be used for a beta phase.
- *
- * Other improvments are planned. Like detecting
- * is the path got a stroke or a valid opacity.
- */
-Vivus.prototype.isInvisible = function (el) {
-  var rect,
-    ignoreAttr = el.getAttribute('data-ignore');
-
-  if (ignoreAttr !== null) {
-    return ignoreAttr !== 'false';
-  }
-
-  if (this.ignoreInvisible) {
-    rect = el.getBoundingClientRect();
-    return !rect.width && !rect.height;
-  }
-  else {
-    return false;
-  }
-};
-
-/**
- * Parse attributes of a DOM element to
- * get an object of {attributeName => attributeValue}
- *
- * @param  {object} element DOM element to parse
- * @return {object}         Object of attributes
- */
-Vivus.prototype.parseAttr = function (element) {
-  var attr, output = {};
-  if (element && element.attributes) {
-    for (var i = 0; i < element.attributes.length; i++) {
-      attr = element.attributes[i];
-      output[attr.name] = attr.value;
-    }
-  }
-  return output;
-};
-
-/**
- * Reply if an element is in the page viewport
- *
- * @param  {object} el Element to observe
- * @param  {number} h  Percentage of height
- * @return {boolean}
- */
-Vivus.prototype.isInViewport = function (el, h) {
-  var scrolled   = this.scrollY(),
-    viewed       = scrolled + this.getViewportH(),
-    elBCR        = el.getBoundingClientRect(),
-    elHeight     = elBCR.height,
-    elTop        = scrolled + elBCR.top,
-    elBottom     = elTop + elHeight;
-
-  // if 0, the element is considered in the viewport as soon as it enters.
-  // if 1, the element is considered in the viewport only when it's fully inside
-  // value in percentage (1 >= h >= 0)
-  h = h || 0;
-
-  return (elTop + elHeight * h) <= viewed && (elBottom) >= scrolled;
-};
-
-
-/**
- * Get the viewport height in pixels
- *
- * @return {integer} Viewport height
- */
-Vivus.prototype.getViewportH = function () {
-  var client = this.docElem.clientHeight,
-    inner = window.innerHeight;
-
-  if (client < inner) {
-    return inner;
-  }
-  else {
-    return client;
-  }
-};
-
-/**
- * Get the page Y offset
- *
- * @return {integer} Page Y offset
- */
-Vivus.prototype.scrollY = function () {
-  return window.pageYOffset || this.docElem.scrollTop;
-};
-
-setupEnv = function () {
-
-  if (Vivus.prototype.docElem) {
-    return;
-  }
-
-  /**
-   * Alias for document element
-   *
-   * @type {DOMelement}
-   */
-  Vivus.prototype.docElem = window.document.documentElement;
-
-  /**
-   * Alias for `requestAnimationFrame` or
-   * `setTimeout` function for deprecated browsers.
-   *
-   */
-  requestAnimFrame = (function () {
-    return (
-      window.requestAnimationFrame       ||
-      window.webkitRequestAnimationFrame ||
-      window.mozRequestAnimationFrame    ||
-      window.oRequestAnimationFrame      ||
-      window.msRequestAnimationFrame     ||
-      function(/* function */ callback){
-        return window.setTimeout(callback, 1000 / 60);
-      }
-    );
-  })();
-
-  /**
-   * Alias for `cancelAnimationFrame` or
-   * `cancelTimeout` function for deprecated browsers.
-   *
-   */
-  cancelAnimFrame = (function () {
-    return (
-      window.cancelAnimationFrame       ||
-      window.webkitCancelAnimationFrame ||
-      window.mozCancelAnimationFrame    ||
-      window.oCancelAnimationFrame      ||
-      window.msCancelAnimationFrame     ||
-      function(id){
-        return window.clearTimeout(id);
-      }
-    );
-  })();
-};
-
-/**
- * Parse string to integer.
- * If the number is not positive or null
- * the method will return the default value
- * or 0 if undefined
- *
- * @param {string} value String to parse
- * @param {*} defaultValue Value to return if the result parsed is invalid
- * @return {number}
- *
- */
-parsePositiveInt = function (value, defaultValue) {
-  var output = parseInt(value, 10);
-  return (output >= 0) ? output : defaultValue;
-};
-
-
-  if (typeof define === 'function' && define.amd) {
-    // AMD. Register as an anonymous module.
-    define([], function() {
-      return Vivus;
-    });
-  } else if (typeof exports === 'object') {
-    // Node. Does not work with strict CommonJS, but
-    // only CommonJS-like environments that support module.exports,
-    // like Node.
-    module.exports = Vivus;
-  } else {
-    // Browser globals
-    window.Vivus = Vivus;
-  }
-
-}());
+
+	UNCODE.adaptive_srcset_bg = function() {
+		var mobileSize = SiteParameters.dynamic_srcset_bg_mobile_size ? parseInt(SiteParameters.dynamic_srcset_bg_mobile_size, 10) : false;
+
+		if (!(mobileSize > 0)) {
+			return;
+		}
+
+		var images = new Array();
+		var getImages = document.querySelectorAll('.srcset-bg-generate-img:not(.adaptive-fetching)');
+
+		for (var i = 0; i < getImages.length; i++) {
+			var imageObj = {};
+			var el = getImages[i];
+
+			classie.addClass(el, 'srcset-bg-fetching');
+			imageObj.unique = el.getAttribute('data-uniqueid');
+			imageObj.url = el.getAttribute('data-guid');
+			imageObj.path = el.getAttribute('data-path');
+			imageObj.origwidth = el.getAttribute('data-width');
+			imageObj.origheight = el.getAttribute('data-height');
+
+			images.push(imageObj);
+		}
+
+		if (images.length > 0) {
+			var post_data = {
+				images: JSON.stringify(images),
+				action: 'regenerate_srcset_bg_async',
+				resize_quality: SiteParameters.resize_quality,
+				mobile_size: mobileSize,
+				nonce_srcset_async: SiteParameters.nonce_srcset_async
+			};
+
+			var xhr = new XMLHttpRequest();
+			xhr.open('POST', SiteParameters.ajax_url, true);
+			xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+			xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+			xhr.onreadystatechange = function() {
+				if (xhr.readyState == XMLHttpRequest.DONE) {
+					if (xhr.status == 200 && xhr.responseText) {
+						var jsonResponse = JSON.parse(xhr.responseText);
+
+						if (jsonResponse.success && jsonResponse.data.images) {
+							var processedImages = jsonResponse.data.images;
+
+							for (var i = 0; i < processedImages.length; i++) {
+								var processedImageID = processedImages[i].id;
+								var processedImageUniqueID = processedImages[i].unique;
+								var processedImageisNew = processedImages[i].new_crop === true ? true : false;
+								var getImage = document.querySelectorAll('[data-uniqueid="'+processedImageUniqueID+'"]');
+
+								for (var j = 0; j < getImage.length; j++) {
+									classie.removeClass(getImage[j], 'srcset-bg-fetching');
+									classie.addClass(getImage[j], 'srcset-bg-async-done');
+									getImage[j].dispatchEvent(new CustomEvent("async-done"));
+								}
+
+								if (processedImageisNew && SiteParameters.optimize_shortpixel_image == true) {
+									UNCODE.process_shortpixel_image(processedImageID);
+								}
+							}
+						} else {
+							if (SiteParameters.enable_debug == true) {
+								// This console log is disabled by default
+								// So nothing is printed in a typical installation
+								//
+								// It can be enabled for debugging purposes setting
+								// the 'uncode_enable_debug_on_js_scripts' filter to true
+								if (jsonResponse.success == false && jsonResponse.data.message) {
+									console.log('There was an error: ' + jsonResponse.data.message);
+								} else {
+									console.log('There was an error: bad response');
+								}
+							}
+						}
+
+					} else if (xhr.status == 400) {
+						if (SiteParameters.enable_debug == true) {
+							// This console log is disabled by default
+							// So nothing is printed in a typical installation
+							//
+							// It can be enabled for debugging purposes setting
+							// the 'uncode_enable_debug_on_js_scripts' filter to true
+							console.log('There was an error 400');
+						}
+					} else {
+						if (SiteParameters.enable_debug == true) {
+							// This console log is disabled by default
+							// So nothing is printed in a typical installation
+							//
+							// It can be enabled for debugging purposes setting
+							// the 'uncode_enable_debug_on_js_scripts' filter to true
+							console.log('Something else other than 200 was returned');
+						}
+					}
+				}
+			}
+
+			// Serialize our data
+			var queryString = "",
+				arrayLength = Object.keys(post_data).length,
+				arrayCounter = 0;
+
+			for (var key in post_data) {
+				queryString += key + "=" + post_data[key];
+
+				if (arrayCounter < arrayLength - 1) {
+					queryString += "&";
+				}
+
+				arrayCounter++;
+			}
+
+			xhr.send(queryString);
+		}
+	}
+
+	UNCODE.refresh_dynamic_srcset_size = function(container) {
+		var parentSelector = container ? container[0] : document;
+		// If 'container' is false, we assume that we are resizing generic images
+		var images = container ? parentSelector.querySelectorAll('.srcset-auto') : parentSelector.querySelectorAll('.srcset-auto:not(.srcset-on-layout)');
+
+		for (var i = 0; i < images.length; i++) {
+			// Update srcset/sizes attributes
+			UNCODE.set_dynamic_srcset_size(images[i]);
+		}
+	}
+
+	UNCODE.set_dynamic_srcset_size = function(el) {
+		if (el.nodeName === 'PICTURE') {
+			var picture_imgs = el.getElementsByTagName('img');
+			var picture_sources = el.getElementsByTagName('source');
+			if (picture_imgs.length > 0) {
+				var picture_img = picture_imgs[0];
+			}
+			if (picture_sources.length > 0 && picture_imgs.length > 0) {
+				var picture_source = picture_sources[0];
+				var parent_width = el.clientWidth;
+				var parent_height = el.clientHeight;
+				var picture_img_width = parseInt(picture_img.getAttribute('width'), 10);
+				var picture_img_height = parseInt(picture_img.getAttribute('height'), 10);
+				var final_width = (picture_img_width * parent_height) / picture_img_height;
+				picture_source.sizes = final_width + 'px';
+				classie.addClass(picture_source, 'srcset-sizes-done');
+				if (picture_source.dataset.srcset) {
+					if (SiteParameters.activate_webp && picture_source.dataset.srcsetWebp && ((el.dataset.mime === 'png' && UNCODE.webp_lossless_supported) || (el.dataset.mime === 'jpeg' && UNCODE.webp_lossy_supported))) {
+						picture_source.srcset = picture_source.dataset.srcsetWebp;
+						picture_source.removeAttribute('data-srcset-webp');
+					} else {
+						picture_source.srcset = picture_source.dataset.srcset;
+					}
+					picture_source.removeAttribute('data-srcset');
+					var $waitingThumb = getClosest( picture_source, 'srcset-lazy-animations');
+					if ( $waitingThumb != null ) {
+						picture_img.onload = function(){
+							classie.removeClass( $waitingThumb, 'srcset-lazy-animations');
+						};
+					}
+				}
+			}
+		} else {
+			if (typeof el.parentNode !== 'undefined') {
+				if ( classie.hasClass(el.parentNode, 't-entry-drop') ) {
+					var parent_width = el.parentNode.getAttribute('data-w');
+					if ( typeof parent_width !== 'undefined' && parent_width !== null ) {
+						parent_width = UNCODE.wwidth / 12 * parseFloat( parent_width );
+					}
+				} else {
+					var parent_width = el.parentNode.parentElement.clientWidth;
+				}
+				el.sizes = parent_width + 'px';
+				classie.addClass(el, 'srcset-sizes-done');
+				if (el.dataset.srcset) {
+					if (SiteParameters.activate_webp && el.dataset.srcsetWebp && ((el.dataset.mime === 'png' && UNCODE.webp_lossless_supported) || (el.dataset.mime === 'jpeg' && UNCODE.webp_lossy_supported))) {
+						el.srcset = el.dataset.srcsetWebp;
+						el.removeAttribute('data-srcset-webp');
+					} else {
+						el.srcset = el.dataset.srcset;
+					}
+					el.removeAttribute('data-srcset');
+					var $waitingThumb = getClosest( el, 'srcset-lazy-animations');
+					if ( $waitingThumb != null ) {
+						el.onload = function(){
+							classie.removeClass( $waitingThumb, 'srcset-lazy-animations');
+						};
+					}
+				}
+			}
+		}
+	};
+
+	UNCODE.adaptive_srcset = function(container) {
+		var images = new Array();
+		var parentSelector = container ? container[0] : document;
+		// If 'container' is false, we assume that this is a call on window load
+		var isLoadingResize = container ? false : true;
+		var getImages = parentSelector.querySelectorAll('.srcset-async:not(.srcset-fetching)');
+		var limit = SiteParameters.dynamic_srcset_bunch_limit ? parseInt(SiteParameters.dynamic_srcset_bunch_limit, 10) : 1;
+
+		for (var i = 0; i < getImages.length; i++) {
+			var imageObj = {};
+			var el = getImages[i];
+			var missing_breakpoints = el.getAttribute('data-no-bp');
+
+			if (isLoadingResize) {
+				// Update srcset/sizes attributes
+				// But skip images that are processed on other events
+				// (isotope.onLayout for example) to avoid double calls
+				if (!classie.hasClass(el, 'srcset-on-layout')) {
+					UNCODE.set_dynamic_srcset_size(el);
+				}
+			}
+
+			if (missing_breakpoints) {
+				classie.addClass(el, 'srcset-fetching');
+				imageObj.unique = el.getAttribute('data-uniqueid');
+				imageObj.url = el.getAttribute('data-guid');
+				imageObj.path = el.getAttribute('data-path');
+				imageObj.singlew = el.getAttribute('data-singlew');
+				imageObj.singleh = el.getAttribute('data-singleh');
+				imageObj.origwidth = el.getAttribute('data-width');
+				imageObj.origheight = el.getAttribute('data-height');
+				imageObj.crop = el.getAttribute('data-crop');
+				imageObj.fixed = el.getAttribute('data-fixed') == undefined ? null : el.getAttribute('data-fixed');
+				imageObj.missingbp = missing_breakpoints;
+
+				images.push(imageObj);
+			} else {
+				classie.removeClass(el, 'srcset-async');
+			}
+		}
+
+		while (images.length > 0) {
+			if (images.length >= limit) {
+				var bunch_images = new Array();
+				for (var i = limit - 1; i >= 0; i--) {
+					bunch_images.push(images[i]);
+					images.splice(i, 1);
+				}
+				UNCODE.adaptive_srcset_async(parentSelector, bunch_images);
+			} else {
+				UNCODE.adaptive_srcset_async(parentSelector, images);
+				break;
+			}
+		}
+	};
+
+	UNCODE.adaptive_srcset_async = function(parentSelector, images) {
+		var post_data = {
+			images: JSON.stringify(images),
+			action: 'regenerate_srcset_async',
+			resize_quality: SiteParameters.resize_quality,
+			nonce_srcset_async: SiteParameters.nonce_srcset_async
+		};
+
+		var xhr = new XMLHttpRequest();
+		xhr.open('POST', SiteParameters.ajax_url, true);
+		xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+		xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+		xhr.onreadystatechange = function() {
+			if (xhr.readyState == XMLHttpRequest.DONE) {
+				if (xhr.status == 200 && xhr.responseText) {
+					var jsonResponse = JSON.parse(xhr.responseText);
+
+					if (jsonResponse.success && jsonResponse.data.images) {
+						var processedImages = jsonResponse.data.images;
+
+						for (var i = 0; i < processedImages.length; i++) {
+							var processedImageID = processedImages[i].id;
+							var processedImageUniqueID = processedImages[i].unique;
+							var processedImageisNew = processedImages[i].new_crop === true ? true : false;
+							var getImage = parentSelector.querySelectorAll('[data-uniqueid="'+processedImageUniqueID+'"]');
+
+							for (var j = 0; j < getImage.length; j++) {
+								classie.removeClass(getImage[j], 'srcset-async');
+								classie.removeClass(getImage[j], 'srcset-fetching');
+								classie.addClass(getImage[j], 'srcset-async-done');
+								getImage[j].dispatchEvent(new CustomEvent("async-done"));
+							}
+
+							if (processedImageisNew && SiteParameters.optimize_shortpixel_image == true) {
+								UNCODE.process_shortpixel_image(processedImageID);
+							}
+						}
+					} else {
+						if (SiteParameters.enable_debug == true) {
+							// This console log is disabled by default
+							// So nothing is printed in a typical installation
+							//
+							// It can be enabled for debugging purposes setting
+							// the 'uncode_enable_debug_on_js_scripts' filter to true
+							if (jsonResponse.success == false && jsonResponse.data.message) {
+								console.log('There was an error: ' + jsonResponse.data.message);
+							} else {
+								console.log('There was an error: bad response');
+							}
+						}
+					}
+
+				} else if (xhr.status == 400) {
+					if (SiteParameters.enable_debug == true) {
+						// This console log is disabled by default
+						// So nothing is printed in a typical installation
+						//
+						// It can be enabled for debugging purposes setting
+						// the 'uncode_enable_debug_on_js_scripts' filter to true
+						console.log('There was an error 400');
+					}
+				} else {
+					if (SiteParameters.enable_debug == true) {
+						// This console log is disabled by default
+						// So nothing is printed in a typical installation
+						//
+						// It can be enabled for debugging purposes setting
+						// the 'uncode_enable_debug_on_js_scripts' filter to true
+						console.log('Something else other than 200 was returned');
+					}
+				}
+			}
+		}
+
+		// Serialize our data
+		var queryString = "",
+			arrayLength = Object.keys(post_data).length,
+			arrayCounter = 0;
+
+		for (var key in post_data) {
+			queryString += key + "=" + post_data[key];
+
+			if (arrayCounter < arrayLength - 1) {
+				queryString += "&";
+			}
+
+			arrayCounter++;
+		}
+
+		xhr.send(queryString);
+	};
+
+})(window);
 
 (function(global){var startY=0;var enabled=false;var supportsPassiveOption=false;try{var opts=Object.defineProperty({},"passive",{get:function(){supportsPassiveOption=true}});window.addEventListener("test",null,opts)}catch(e){}var handleTouchmove=function(evt){var el=evt.target;while(el!==document.body&&el!==document){var style=window.getComputedStyle(el);if(!style){break}if(el.nodeName==="INPUT"&&el.getAttribute("type")==="range"){return}var scrolling=style.getPropertyValue("-webkit-overflow-scrolling");var overflowY=style.getPropertyValue("overflow-y");var height=parseInt(style.getPropertyValue("height"),10);var isScrollable=scrolling==="touch"&&(overflowY==="auto"||overflowY==="scroll");var canScroll=el.scrollHeight>el.offsetHeight;if(isScrollable&&canScroll){var curY=evt.touches?evt.touches[0].screenY:evt.screenY;var isAtTop=startY<=curY&&el.scrollTop===0;var isAtBottom=startY>=curY&&el.scrollHeight-el.scrollTop===height;if(isAtTop||isAtBottom){evt.preventDefault()}return}el=el.parentNode}evt.preventDefault()};var handleTouchstart=function(evt){startY=evt.touches?evt.touches[0].screenY:evt.screenY};var enable=function(){window.addEventListener("touchstart",handleTouchstart,supportsPassiveOption?{passive:false}:false);window.addEventListener("touchmove",handleTouchmove,supportsPassiveOption?{passive:false}:false);enabled=true};var disable=function(){window.removeEventListener("touchstart",handleTouchstart,false);window.removeEventListener("touchmove",handleTouchmove,false);enabled=false};var isEnabled=function(){return enabled};var testDiv=document.createElement("div");document.documentElement.appendChild(testDiv);testDiv.style.WebkitOverflowScrolling="touch";var scrollSupport="getComputedStyle"in window&&window.getComputedStyle(testDiv)["-webkit-overflow-scrolling"]==="touch";document.documentElement.removeChild(testDiv);if(scrollSupport){enable()}var iNoBounce={enable:enable,disable:disable,isEnabled:isEnabled};if(typeof module!=="undefined"&&module.exports){module.exports=iNoBounce}if(typeof global.define==="function"){(function(define){define("iNoBounce",[],function(){return iNoBounce})})(global.define)}else{global.iNoBounce=iNoBounce}})(this);
 iNoBounce.disable();
