@@ -18,5 +18,6 @@ Allow: /wp-*.jpeg
 Allow: /wp-*.gif           
 Allow: /wp-*.svg          
 Allow: /wp-*.pdf
+Allow: /wp-*.ico
  
 Sitemap: https://dauthfamily.github.io/xmlsitemap.xml
