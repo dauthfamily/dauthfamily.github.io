@@ -1,0 +1,307 @@
+/*
+
+This file controls the CSS of the maps, essentially for the HTML tooltips.
+The maps are generated using the Google Visualization API, specificaly the Geochart:
+https://developers.google.com/chart/interactive/docs/gallery/geochart
+
+Here some of the default CSS rules for the tooltips are overwritten.
+You can customize the visual of the tooltips further editing the classes below.
+
+The tooltips might also inherit some rules from your theme's CSS.
+
+1 - Placeholders
+2 - Overlay Maps
+3 - Tooltip styles override and reset
+4 - Zoom controls
+5 - Columns
+6 - Media queries
+
+Placeholder Styles
+*/
+
+.iwm_placeholder {
+	opacity: 0;
+	background-color: #f5f5f5;
+	width: 100%;
+	position: relative;
+	list-style: none;
+	text-align: center;
+	vertical-align: middle;
+	padding-top: 25%;
+	font-size: 0.8em;
+}
+
+.iwm_placeholder:after {
+	padding-top: 25%;
+	display: block;
+	content: '';
+}
+
+.elementor-shortcode .iwm_placeholder {
+	opacity: 1;
+}
+
+.cs_iwm_placeholder {
+	opacity: 1;
+	background-color: #f5f5f5;
+	width: 100%;
+	position: relative;
+	list-style: none;
+	text-align: center;
+	vertical-align: middle;
+	padding-top: 25%;
+	font-size: 0.8em;
+}
+
+.cs_iwm_placeholder:after {
+	padding-top: 25%;
+	display: block;
+	content: '';
+}
+
+/* Overlay maps, make background transparent */
+
+.iwm_data svg>g>rect:first-child {
+	fill: none;
+}
+
+/* overlay maps, mag lens background */
+
+.iwm_data g g g[clip-path*='url(#_ABSTRACT_RENDERER_ID_'] g path {
+	display: block !important;
+}
+
+/* overlay pointer events fix */
+.iwm_map_canvas .google-visualization-tooltip {
+	pointer-events: all;
+}
+
+/* Tooltip styles override and reset
+ * !important needed to override styles loaded by google api
+*/
+.iwm_map_canvas li {
+	list-style: none !important;
+}
+
+.iwm_map_canvas text {
+	stroke-width: 0;
+	cursor: default;
+}
+
+.iwm_map_canvas img {
+	border: none;
+	padding: 0;
+	margin: 0;
+	box-shadow: none;
+}
+
+.iwm_map_canvas .google-visualization-tooltip {
+	z-index: 9999;
+	margin: 0;
+	padding: 8px;
+	color: #444;
+	word-wrap: normal;
+	font-family: inherit;
+	margin-right: -50px;
+	margin-bottom: -50px;
+	box-shadow: none;
+	-moz-box-shadow: none;
+	-webkit-box-shadow: none;
+	font-family: 'Arial';
+}
+
+
+.iwm_map_canvas .google-visualization-tooltip ul, .iwm_map_canvas .google-visualization-tooltip li, .iwm_map_canvas .google-visualization-tooltip img {
+	margin: 0 !important;
+	padding: 0 !important;
+	border: 0;
+	outline: 0;
+	font-size: 100%;
+	line-height: 1.5em;
+	font-size: 1em;
+	text-decoration: none;
+	vertical-align: baseline;
+	list-style: none;
+}
+
+.iwm-list li {
+	cursor: pointer;
+}
+
+
+/* Zoom Controls */
+
+.iwm-controls {
+	position: absolute;
+	z-index: 10;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	outline: 0;
+	background: rgba(255, 255, 255, 0.5);
+	border-radius: 2px;
+	padding: 2px;
+}
+
+.iwm-controls-top-left {
+	top: 1%;
+	left: 1%;
+}
+
+.iwm-controls-center-left {
+	bottom: 50%;
+	left: 1%;
+}
+
+.iwm-controls-top-right {
+	top: 1%;
+	right: 1%;
+}
+
+.iwm-controls-bottom-right {
+	bottom: 1%;
+	right: 1%;
+}
+
+.iwm-controls-bottom-left {
+	bottom: 1%;
+	left: 1%;
+}
+
+.iwm-controls-zoom-in, .iwm-controls-zoom-out {
+	font-family: Arial, Helvetica, sans-serif;
+	border-radius: 2px;
+	background: #292929;
+	padding: 3px;
+	color: white;
+	cursor: pointer;
+	line-height: 10px;
+	text-align: center;
+	box-sizing: content-box;
+	width: 10px;
+	height: 10px;
+	opacity: 0.7;
+}
+
+.iwm-controls-zoom-in {
+	margin-bottom: 3px;
+}
+
+.iwm-controls-zoom-in:hover, .iwm-controls-zoom-out:hover {
+	opacity: 1;
+	background: #303030;
+}
+
+/* zoom styles for overlay maps */
+
+div[id*='iwm_control_'] {
+	width: 100%;
+	display: inline-block;
+	position: relative;
+	list-style: none;
+}
+
+div[id*='iwm_control_']:after {
+	padding-top: 61.7%;
+	display: block;
+	content: '';
+}
+
+div[id*='iwm_control_'] div[id*='iwm_pan_container_'] {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	right: 0;
+	left: 0;
+}
+
+/*
+ * The content of the tooltip is rendered by the API in an unordered list
+ * With 2 li entries, one for the title and other for the actual tooltip info.
+*/
+
+.iwm_map_canvas .google-visualization-tooltip-item-list {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+.iwm_map_canvas ul.google-visualization-tooltip-item-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.iwm_map_canvas li.google-visualization-tooltip-item {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.iwm_map_canvas .google-visualization-tooltip-item * {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+/* This rule controls the Title info */
+
+.iwm_map_canvas .google-visualization-tooltip-item-list, .iwm_map_canvas .google-visualization-tooltip-item:first-child {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+/* Columns to display content on the sides */
+
+.iwm_2_3_column, .iwm_1_3_column, .iwm_3_4_column, .iwm_1_4_column, .iwm_1_2_column {
+	display: inline-block;
+	vertical-align: top;
+}
+
+.iwm_1_2_column {
+	width: 50%;
+}
+
+.iwm_2_3_column {
+	width: 66%;
+}
+
+.iwm_3_4_column {
+	width: 75%;
+}
+
+.iwm_1_3_column {
+	width: 33%;
+	padding-left: 5px;
+}
+
+.iwm_1_4_column {
+	width: 25%;
+	padding-left: 5px;
+}
+
+.iwm_1_3_column img, .iwm_1_4_column img, .iwm_1_2_column img {
+	max-width: 100%;
+}
+
+@media only screen and (max-width: 768px) {
+	.iwm-controls {
+		vertical-align: middle;
+		text-align: center;
+	}
+	.iwm-controls-zoom-in, .iwm-controls-zoom-out {
+		font-size: 2em;
+		padding: 10px 5px;
+		text-align: center;
+		width: auto;
+		height: auto;
+	}
+	/* set columns to take 100% */
+	.iwm_2_3_column, .iwm_1_3_column, .iwm_3_4_column, .iwm_1_4_column, .iwm_1_2_column {
+		width: 100%;
+	}
+}

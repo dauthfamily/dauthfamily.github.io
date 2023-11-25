@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?xml-stylesheet type="text/xsl" href="https://dauthfamily.github.io/wp-content/plugins/www-xml-sitemap-generator-org//assets/SitemapXML.xsl"?>
+<!-- Created using XmlSitemapGenerator.org WordPress Plugin - Free HTML, RSS and XML sitemap generator -->
+<urlset  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"  xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd" >
+<url><loc>https://dauthfamily.github.io</loc><lastmod>2023-08-17T19:14:52+00:00</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>
+<url><loc>https://dauthfamily.github.io/search/</loc><lastmod>2023-03-05T06:49:49+00:00</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+<url><loc>https://dauthfamily.github.io/custom-navigation/</loc><lastmod>2022-01-05T16:54:05+00:00</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+<url><loc>https://dauthfamily.github.io/movies/</loc><lastmod>2023-04-07T03:27:01+00:00</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+<url><loc>https://dauthfamily.github.io/advertisements/</loc><lastmod>2023-04-07T03:28:11+00:00</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+<url><loc>https://dauthfamily.github.io/articles/</loc><lastmod>2023-04-07T03:25:14+00:00</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+<url><loc>https://dauthfamily.github.io/documents/</loc><lastmod>2023-04-07T03:23:33+00:00</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+<url><loc>https://dauthfamily.github.io/photos/</loc><lastmod>2023-04-07T03:19:12+00:00</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+<url><loc>https://dauthfamily.github.io/posts/</loc><lastmod>2023-02-04T22:40:58+00:00</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+<url><loc>https://dauthfamily.github.io/about/</loc><lastmod>2023-03-25T18:29:41+00:00</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+<url><loc>https://dauthfamily.github.io/people/</loc><lastmod>2023-03-06T14:19:04+00:00</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+<url><loc>https://dauthfamily.github.io/front-page/</loc><lastmod>2023-01-01T23:58:14+00:00</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+
+</urlset>
+<!-- Created using XmlSitemapGenerator.org WordPress Plugin - Free HTML, RSS and XML sitemap generator -->

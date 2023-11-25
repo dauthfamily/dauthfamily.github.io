@@ -1,0 +1,73 @@
+/*
+ * Interactive World Maps Plugin Styles
+ * Styles loaded only when responsive mode is enabled
+ * 1 - Container Styles
+ * 2 - Overlay Maps Styles
+ * 3 - Media Queries
+ *
+*/
+
+
+/* Container Styles */
+
+.iwm_map_canvas {
+	width: 100%;
+	display: inline-block;
+	position: relative;
+	list-style: none;
+}
+
+.iwm_map_canvas:after {
+	padding-top: 61.7%;
+	display: block;
+	content: '';
+}
+
+.iwm_map_canvas div[id*='map_canvas_'] {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	right: 0;
+	left: 0;
+}
+
+/* End Container Styles */
+
+/* Overlaying maps */
+
+.iwm_map_overlay .iwm_data {
+	position: absolute;
+	top: 0;
+	left: 0;
+	pointer-events: none;
+}
+
+.iwm_map_overlay {
+	width: 100%;
+	display: inline-block;
+	position: relative;
+	list-style: none;
+}
+
+/* End Overlay Maps */
+
+/* Media Queries */
+
+@media only print {
+	.iwm_map_canvas {
+		overflow: auto;
+		max-width: 600px;
+		max-height: 400px;
+	}
+	.iwm_map_canvas:after {
+		padding-top: 0;
+		display: block;
+		content: '';
+	}
+	.iwm_map_canvas svg {
+		zoom: 40%;
+	}
+	.iwm_map_canvas div[id*='map_canvas_'] {
+		position: relative;
+	}
+}
